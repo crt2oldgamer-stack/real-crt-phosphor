@@ -1,0 +1,4 @@
+#reference "4k-base.slangp"
+# 4K PS1: only the values that differ from the base. Per-game tweaks: load this, then Save Game Preset.
+LUMA_BLUR = "0.500000"
+LUMA_TAIL = "0.400000"

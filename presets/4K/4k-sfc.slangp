@@ -1,0 +1,3 @@
+#reference "4k-base.slangp"
+# 4K SFC (Super Famicom): only the values that differ from the base. Per-game tweaks: load this, then Save Game Preset.
+LUMA_BLUR = "0.700000"

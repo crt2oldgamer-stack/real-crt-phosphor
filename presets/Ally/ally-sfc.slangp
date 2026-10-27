@@ -1,0 +1,2 @@
+#reference "ally-base.slangp"
+# Ally SFC (Super Famicom): only the values that differ from the base. Per-game tweaks: load this, then Save Game Preset.

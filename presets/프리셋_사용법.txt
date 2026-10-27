@@ -1,0 +1,40 @@
+[Real CRT Phosphor 프리셋 사용법]
+
+■ 설치
+  real-crt-phosphor 폴더를 RetroArch의 shaders/shaders_slang/ 안에 넣습니다.
+  폴더 이름에 버전 번호가 없으니, 다음 버전부터는 같은 자리에 덮어쓰기만 하면
+  프리셋과 게임 프리셋이 계속 연결됩니다.
+
+■ 구조 (서로 물려받지 않음)
+  real-crt-phosphor.slangp        셰이더 본체 (기본값)
+    └ presets/4K/4k-base.slangp     4K 공통 바탕 (Grille, 피치 4.5)
+        ├ 4k-sfc / 4k-ps1 / 4k-ps2 / 4k-psp   바탕과 다른 값만
+        │   └ 4k-<기종>-slot   같은 설정 + Slot Mask, 피치 3
+        │   └ 4k-ps2-2d        PS2 + 피치 1.5 (2D 게임용)
+    └ presets/Ally/ally-base.slangp 로갈리 공통 바탕 (구조 동일)
+
+  - 4K 전체를 바꾸고 싶으면 4k-base만 고칩니다.
+  - 한 기종만 바꾸고 싶으면 그 기종 파일만 고칩니다. 다른 기종은 영향 없음.
+  - Slot 프리셋을 고르면 그 기종 Grille 설정을 그대로 쓰고 마스크와 피치만 바뀝니다.
+
+■ 기종(코어)마다 연결하기
+  게임 실행 → Quick Menu → Shaders → Load → presets/4K/4k-sfc.slangp 등 선택
+  → Save → Save Core Preset
+
+■ 게임마다 미세 조정
+  게임 실행 (코어 프리셋이 뜬 상태) → Shader Parameters에서 2~3개 조정
+  → Save → Save Game Preset
+  그 게임에서만 덮어써지고, 나머지는 기종 프리셋을 따라갑니다.
+
+■ 주의: 예전처럼 연결이 꼬이지 않게
+  RetroArch는 "지금 띄워 둔 프리셋"을 기준으로 저장합니다.
+  PS2 프리셋을 띄운 채 값을 바꿔 PS1용으로 저장하면, PS1이 PS2를 물려받게 됩니다.
+  새 기종 프리셋을 만들 때는 먼저 base 파일을 Load 한 다음 조정·저장하세요.
+  파일 이름을 나중에 바꾸면 그 파일을 가리키던 #reference 가 끊깁니다.
+  이름은 탐색기가 아니라 RetroArch에서 새로 저장하는 방식으로 바꾸세요.
+
+■ 참고
+  - 로갈리 프리셋은 색 어긋남(Convergence)이 모두 0입니다. 0.5~0.6을 쓰신다면
+    ally-base.slangp 에 CONVERGE = "0.550000" 한 줄을 넣으면 전 기종에 적용됩니다.
+  - PS2 2D 게임은 *-ps2-2d 를 Load 한 뒤 Save Game Preset 으로 그 게임에만 적용하세요.
+    피치 1.5는 RGB 줄 대신 고운 색 섞임으로 작동해 도트가 부드러워집니다(정상 값).

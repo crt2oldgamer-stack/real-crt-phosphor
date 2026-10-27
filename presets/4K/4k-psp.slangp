@@ -1,0 +1,4 @@
+#reference "4k-base.slangp"
+# 4K PSP: only the values that differ from the base. Per-game tweaks: load this, then Save Game Preset.
+LUMA_BLUR = "0.900000"
+LUMA_TAIL = "1.100000"

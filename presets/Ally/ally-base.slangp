@@ -1,0 +1,11 @@
+#reference "../../real-crt-phosphor.slangp"
+# Ally shared base: values most systems use. Every system preset references only this file.
+LUMA_BLUR = "0.400000"
+LUMA_TAIL = "0.600000"
+CHROMA_BLUR = "0.800000"
+S_LOW = "0.300000"
+S_HIGH = "0.650000"
+VERT_BLUR = "0.250000"
+MASK_PITCH = "4.500000"
+FINAL_BLUR = "0.300000"
+BRIGHT = "1.000000"

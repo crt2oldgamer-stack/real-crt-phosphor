@@ -1,0 +1,9 @@
+#reference "4k-base.slangp"
+# 4K PS2: only the values that differ from the base. Per-game tweaks: load this, then Save Game Preset.
+SOFT_ALL = "0.000000"
+LUMA_TAIL = "0.250000"
+CHROMA_TAIL = "0.600000"
+VERT_BLUR = "0.350000"
+MELT_BRIGHT = "0.600000"
+CONVERGE = "0.000000"
+FINAL_BLUR = "0.400000"

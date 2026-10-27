@@ -1,0 +1,4 @@
+#reference "4k-ps2.slangp"
+# 4K PS2 slot mask: same settings, slot mask with a finer pitch (3) so the slots do not look harsh.
+MASK_TYPE = "1.000000"
+MASK_PITCH = "3.000000"

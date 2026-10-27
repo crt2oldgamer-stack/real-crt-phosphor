@@ -1,0 +1,91 @@
+# Real CRT Phosphor v1.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+shaders = 12
+
+shader0 = shaders/box.slang
+alias0 = "Box"
+filter_linear0 = false
+wrap_mode0 = clamp_to_edge
+scale_type0 = source
+scale0 = 1.0
+
+shader1 = shaders/dither.slang
+alias1 = "Dithered"
+filter_linear1 = false
+wrap_mode1 = clamp_to_edge
+scale_type1 = source
+scale1 = 1.0
+
+shader2 = shaders/soft.slang
+alias2 = "Dither"
+filter_linear2 = false
+wrap_mode2 = clamp_to_edge
+scale_type2 = source
+scale2 = 1.0
+
+shader3 = shaders/kern.slang
+alias3 = "Kern"
+filter_linear3 = false
+wrap_mode3 = clamp_to_edge
+float_framebuffer3 = true
+scale_type3 = source
+scale3 = 1.0
+
+shader4 = shaders/signal.slang
+alias4 = "SignalH"
+filter_linear4 = false
+wrap_mode4 = clamp_to_edge
+scale_type4 = source
+scale4 = 1.0
+
+shader5 = shaders/vblur.slang
+alias5 = "Signal"
+filter_linear5 = false
+wrap_mode5 = clamp_to_edge
+scale_type5 = source
+scale5 = 1.0
+
+shader6 = shaders/glow_h.slang
+filter_linear6 = false
+wrap_mode6 = clamp_to_edge
+float_framebuffer6 = true
+scale_type6 = source
+scale6 = 1.0
+
+shader7 = shaders/glow_v.slang
+alias7 = "Glow"
+filter_linear7 = true
+wrap_mode7 = clamp_to_edge
+float_framebuffer7 = true
+scale_type7 = source
+scale7 = 1.0
+
+shader8 = shaders/beam.slang
+filter_linear8 = true
+wrap_mode8 = clamp_to_edge
+float_framebuffer8 = true
+scale_type8 = viewport
+scale8 = 1.0
+
+shader9 = shaders/rgb.slang
+filter_linear9 = true
+wrap_mode9 = clamp_to_edge
+float_framebuffer9 = true
+scale_type9 = viewport
+scale9 = 1.0
+
+shader10 = shaders/post_h.slang
+filter_linear10 = true
+wrap_mode10 = clamp_to_edge
+float_framebuffer10 = true
+scale_type10 = viewport
+scale10 = 1.0
+
+shader11 = shaders/post_v.slang
+filter_linear11 = true
+wrap_mode11 = clamp_to_edge
+scale_type11 = viewport
+scale11 = 1.0
+
+# Explicit LOD 0 in the optimized post-filter passes.
+mipmap_input10 = false
+mipmap_input11 = false

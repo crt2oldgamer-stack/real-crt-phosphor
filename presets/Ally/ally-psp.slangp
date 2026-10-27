@@ -1,0 +1,7 @@
+#reference "ally-base.slangp"
+# Ally PSP: only the values that differ from the base. Per-game tweaks: load this, then Save Game Preset.
+SOFT_ALL = "0.250000"
+LUMA_BLUR = "0.750000"
+LUMA_TAIL = "1.050000"
+VERT_BLUR = "0.850000"
+FINAL_BLUR = "0.450000"

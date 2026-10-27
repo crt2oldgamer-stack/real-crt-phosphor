@@ -1,0 +1,4 @@
+#reference "ally-ps2.slangp"
+# Ally PS2 for 2D games: pitch 1.5 is below what a screen pixel can show as R,G,B stripes,
+# so it acts as a fine colour blend that smooths sprite edges (an upscaling-like look). Use as a Game Preset base.
+MASK_PITCH = "1.500000"
