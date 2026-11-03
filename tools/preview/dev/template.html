@@ -482,7 +482,8 @@ const KO = {
 
 // ---- the viewer's monitor: start with a result the size of their own screen, and the matching preset family
 const MON = (() => {
-  const d = window.devicePixelRatio || 1, w = Math.round(screen.width * d), h = Math.round(screen.height * d);
+  const d = window.devicePixelRatio || 1, w0 = Math.round(screen.width * d), h0 = Math.round(screen.height * d);
+  const w = Math.max(w0, h0), h = Math.min(w0, h0);   // games are played landscape: a portrait tablet's height is its short side
   const hs = [720, 1080, 1200, 1440, 1600, 2160];
   let H = hs.reduce((a, b) => Math.abs(b - h) < Math.abs(a - h) ? b : a);
   if (h > 2400) H = 2160;
@@ -585,15 +586,19 @@ function ensureFBs(iw, ih, ow, oh) {
   resultTex = fbs[11].tex; fbKey = key;
 }
 const sz = t => [t.w, t.h, 1 / t.w, 1 / t.h];
-function runPipeline() {
+// rect (in the shader's own, unrotated output pixels) limits the screen-size passes to that area; null = everything.
+// The small source-size passes always run in full. Rows are stored top-first, so the rect needs no flip.
+function runPipeline(rect) {
   if (!origTex) return;
   const ow = S.rot ? S.outH : S.outW, oh = S.rot ? S.outW : S.outH;
   ensureFBs(origTex.w, origTex.h, ow, oh);
+  S.rendered = rect ? rect : 'full';
   const vals = PARAMS.map(p => S.vals[p.name] ?? p.d);
   for (let i = 0; i < 12; i++) {
     const L = LAYOUT[i], P = progs[i], U = locs[i], out = fbs[i].tex;
     gl.useProgram(P);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbs[i].fb); gl.viewport(0, 0, out.w, out.h);
+    if (rect && L.sc === 'v') { gl.enable(gl.SCISSOR_TEST); gl.scissor(rect.x, rect.y, rect.w, rect.h); } else gl.disable(gl.SCISSOR_TEST);
     let unit = 0, src = null;
     for (const [nm, idx] of Object.entries(L.in)) {
       const t = idx === 'orig' ? origTex : fbs[idx].tex;
@@ -614,6 +619,7 @@ function runPipeline() {
     U.p.forEach((l, k) => { if (l) gl.uniform1f(l, vals[k]); });
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
+  gl.disable(gl.SCISSOR_TEST);
 }
 
 // ---- display: nearest view with pan/zoom, box-filtered when zoomed out, optional rotation and diff
@@ -690,7 +696,10 @@ function drawPane(x, w, h, which, clipW) {
 let origDisp = null;
 function draw() {
   resizeCanvas();
-  if (S.dirty) { runPipeline(); S.dirty = false; }
+  if (origTex) {
+    const vis = toPipe(viewRegion());
+    if (S.dirty || (S.rendered !== 'full' && !(S.rendered && inside(vis, S.rendered)))) { runPipeline(grow(vis)); S.dirty = false; }
+  }
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.useProgram(dprog); gl.enable(gl.SCISSOR_TEST);
   gl.clearColor(0, 0, 0, 1); gl.disable(gl.SCISSOR_TEST); gl.viewport(0, 0, canvas.width, canvas.height); gl.clear(gl.COLOR_BUFFER_BIT); gl.enable(gl.SCISSOR_TEST);
@@ -820,7 +829,13 @@ function detectAxisSoft(data, W, H, horizontal) {
 const SYSTEMS = [['NES · PC Engine', 256, 240, ''], ['NES (NTSC filter)', 602, 240, ''], ['SNES / SFC', 256, 224, 'sfc'],
                  ['Mega Drive · Neo Geo · Saturn', 320, 224, ''], ['PS1 · N64', 320, 240, 'ps1'], ['PS1 (368 wide)', 368, 240, 'ps1'], ['PS1 (512 wide)', 512, 240, 'ps1'], ['CPS1/2', 384, 224, ''],
                  ['PSP', 480, 272, 'psp'], ['PS2', 640, 448, 'ps2'], ['PS2 (480)', 640, 480, 'ps2']];
-function systemOf(w, h) { return SYSTEMS.find(x => x[1] === w && x[2] === h) || SYSTEMS.find(x => Math.abs(x[1] - w) <= 3 && Math.abs(x[2] - h) <= 3) || null; }
+function systemOf(w, h) {
+  const hit = SYSTEMS.find(x => x[1] === w && x[2] === h) || SYSTEMS.find(x => Math.abs(x[1] - w) <= 3 && Math.abs(x[2] - h) <= 3);
+  if (hit) return hit;
+  // an emulator's raised internal resolution: an exact 2x..8x of a known screen (PS1 x3 = 960x720)
+  for (const x of SYSTEMS) for (let k = 2; k <= 8; k++) if (x[1] * k === w && x[2] * k === h) return [`${x[0]} ×${k}`, w, h, x[3], k];
+  return null;
+}
 function resample(c, nw, nh) {
   const src = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
   const o = document.createElement('canvas'); o.width = nw; o.height = nh;
@@ -1126,7 +1141,7 @@ function download(name, blob) {
 
 // ================= PNG export (full size, same as RetroArch screen area) =================
 function resultCanvas() {
-  if (S.dirty) { runPipeline(); S.dirty = false; }
+  if (S.dirty || S.rendered !== 'full') { runPipeline(null); S.dirty = false; }
   const t = resultTex; const px = new Uint8Array(t.w * t.h * 4);
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbs[11].fb); gl.readPixels(0, 0, t.w, t.h, gl.RGBA, gl.UNSIGNED_BYTE, px);
   const c = document.createElement('canvas'); c.width = t.w; c.height = t.h;
@@ -1253,6 +1268,16 @@ $('bPng').onclick = e => { e.stopPropagation(); const p = $('savePop'); p.classL
 $('savePop').addEventListener('click', e => { if (e.target.closest('button')) { $('savePop').classList.add('hid'); $('bPng').setAttribute('aria-expanded', 'false'); } });
 document.addEventListener('click', e => { if (!e.target.closest('#mSave')) $('savePop').classList.add('hid'); });
 $('bPngFull').onclick = () => resultCanvas().toBlob(b => download(stem() + '_preview.png', b), 'image/png');
+// displayed rect -> the shader's unrotated output pixels (vertical games are drawn landscape, then turned)
+function toPipe(R) { return S.rot ? {x: S.outH - R.y - R.h, y: R.x, w: R.h, h: R.w} : R; }
+const inside = (a, b) => a.x >= b.x && a.y >= b.y && a.x + a.w <= b.x + b.w && a.y + a.h <= b.y + b.h;
+function grow(R) {             // extra margin so small pans need no new render; big parts of the screen: just do all of it
+  const ow = S.rot ? S.outH : S.outW, oh = S.rot ? S.outW : S.outH;
+  const m = Math.max(64, Math.round(Math.max(R.w, R.h) * 0.25));
+  const x0 = Math.max(0, R.x - m), y0 = Math.max(0, R.y - m), x1 = Math.min(ow, R.x + R.w + m), y1 = Math.min(oh, R.y + R.h + m);
+  if ((x1 - x0) * (y1 - y0) > ow * oh * 0.7) return null;
+  return {x: x0, y: y0, w: x1 - x0, h: y1 - y0};
+}
 function viewRegion() {        // the part of the RetroArch screen the viewer shows right now (one pane)
   const W = canvas.width, H = canvas.height, pw = S.mode === 'split' ? Math.floor(W / 2) - 1 : W;
   const z = zoomValue(pw, H), vw = pw / z, vh = H / z;
@@ -1267,21 +1292,22 @@ function originalAtScreen() {  // the game picture enlarged with plain pixels to
 }
 $('bPngCmp').onclick = () => {
   const R = viewRegion(), res = resultCanvas(), left = S.left === 'ref' && S.refName ? null : originalAtScreen();
-  const pad = 20, gap = 12, lab = 46, foot = 34, W = pad * 2 + R.w * 2 + gap, H = pad + R.h + lab + foot;
+  const u = Math.max(1, R.w / 900);   // text and spacing grow with big pictures so the labels stay readable when shrunk on a board
+  const pad = Math.round(20 * u), gap = Math.round(12 * u), lab = Math.round(46 * u), foot = Math.round(34 * u), W = pad * 2 + R.w * 2 + gap, H = pad + R.h + lab + foot;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d'); x.fillStyle = '#18181b'; x.fillRect(0, 0, W, H); x.imageSmoothingEnabled = false;
   if (left) x.drawImage(left, R.x, R.y, R.w, R.h, pad, pad, R.w, R.h);
   else { const rc = document.createElement('canvas'); rc.width = refTex.w; rc.height = refTex.h; const px = refPixels(); rc.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(px.buffer.slice(0)), refTex.w, refTex.h), 0, 0); x.drawImage(rc, R.x, R.y, R.w, R.h, pad, pad, R.w, R.h); }
   x.drawImage(res, R.x, R.y, R.w, R.h, pad + R.w + gap, pad, R.w, R.h);
   const font = (wt, px) => `${wt} ${px}px "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif`;
-  const ly = pad + R.h + 8;
-  x.fillStyle = '#9b9993'; x.fillRect(pad, ly, R.w, 3); x.fillStyle = '#f2c14e'; x.fillRect(pad + R.w + gap, ly, R.w, 3);
-  x.fillStyle = '#e7e5e0'; x.font = font(650, 18); x.textBaseline = 'top';
-  x.fillText(left ? t('capOrig') : t('capRef'), pad, ly + 12);
+  const ly = pad + R.h + Math.round(8 * u), bar = Math.max(3, Math.round(3 * u));
+  x.fillStyle = '#9b9993'; x.fillRect(pad, ly, R.w, bar); x.fillStyle = '#f2c14e'; x.fillRect(pad + R.w + gap, ly, R.w, bar);
+  x.fillStyle = '#e7e5e0'; x.font = font(650, Math.round(18 * u)); x.textBaseline = 'top';
+  x.fillText(left ? t('capOrig') : t('capRef'), pad, ly + Math.round(12 * u));
   const nChg = PARAMS.filter(q => !isHeader(q) && Math.abs((S.vals[q.name] ?? q.d) - (S.base[q.name] ?? q.d)) > 1e-6).length;
-  x.fillText('Real CRT Phosphor · ' + S.presetKey.replace('.slangp', '') + (nChg ? ' ' + t('cmpEdited', nChg) : ''), pad + R.w + gap, ly + 12);
-  x.fillStyle = '#9b9993'; x.font = font(400, 13);
-  x.fillText(t('cmpFoot', inW() + '×' + inH(), S.outW + '×' + S.outH, VER), pad, H - foot + 8);
+  x.fillText('Real CRT Phosphor · ' + S.presetKey.replace('.slangp', '') + (nChg ? ' ' + t('cmpEdited', nChg) : ''), pad + R.w + gap, ly + Math.round(12 * u));
+  x.fillStyle = '#9b9993'; x.font = font(400, Math.round(13 * u));
+  x.fillText(t('cmpFoot', inW() + '×' + inH(), S.outW + '×' + S.outH, VER), pad, H - foot + Math.round(8 * u));
   c.toBlob(b => download(stem() + '_compare.png', b), 'image/png');
 };
 $('bPngView').onclick = () => {
@@ -1568,7 +1594,7 @@ if (SAMPLE) loadSample();
 if (!hasFloat) $('info').innerHTML = '<span class="warn">' + t('noFloat') + '</span>';
 
 // test hooks (used for automatic checks; harmless in normal use)
-window.__crt = {undo, redo, pushHist, HIST, shareURL, MON, exportText, measurePitch, getCrop: () => crop, loadSample, setLang, findPreset, scoreAgainstRef, setRotDir: d => { ROT_DIR = d; buildInputTex(); changed(); }, S, setInput, setRef, applyPreset, resultCanvas, applySize, changed, imgToCanvas, shaderView, buildInputTex};
+window.__crt = {runPipeline, viewRegion, toPipe, undo, redo, pushHist, HIST, shareURL, MON, exportText, measurePitch, getCrop: () => crop, loadSample, setLang, findPreset, scoreAgainstRef, setRotDir: d => { ROT_DIR = d; buildInputTex(); changed(); }, S, setInput, setRef, applyPreset, resultCanvas, applySize, changed, imgToCanvas, shaderView, buildInputTex};
 </script>
 </body>
 </html>
