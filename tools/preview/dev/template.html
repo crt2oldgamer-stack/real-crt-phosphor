@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Real CRT Phosphor Preview __VER__</title>
+<style>
+:root{
+  --bg:#2b2c2e; --panel:#222325; --panel2:#1b1c1e; --line:#3a3b3e; --text:#e7e5e0; --muted:#9b9993;
+  --warm:#e9a35b; --band:#34353a; --save:#f2c14e; --saveHi:#ffd46b; --r:#ff5a4e; --g:#5fe08a; --b:#5b8cff; --focus:#9cc3ff;
+  color-scheme: dark;
+}
+:root[data-theme="light"]{ --bg:#d9d8d5; --panel:#ecebe8; --panel2:#e2e1de; --line:#c3c1bc; --text:#1d1d1f; --muted:#5f5d58; --warm:#a85a12; --band:#dfded9; --save:#e0a91c; --saveHi:#f0bb32; color-scheme: light; }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--text);font:14px/1.45 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;display:grid;grid-template-rows:auto 1fr auto;height:100%;overflow:hidden}
+button,select,input{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--text);color:var(--panel2);border-color:var(--text)}
+button:disabled{opacity:.45;cursor:default}
+select{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.mark{display:flex;gap:3px;height:20px}
+.mark i{display:block;width:5px;border-radius:2px}
+.mark i:nth-child(1){background:var(--r)}.mark i:nth-child(2){background:var(--g)}.mark i:nth-child(3){background:var(--b)}
+h1{font-size:15px;font-weight:650;margin:0 12px 0 2px;letter-spacing:-.01em}
+h1 small{font-weight:400;color:var(--muted);margin-left:6px}
+.sp{flex:1}
+main{display:grid;grid-template-columns:340px 1fr;min-height:0}
+aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:4px 0 24px}
+.grp{border-bottom:1px solid var(--line);background:var(--panel)}
+.grp:nth-of-type(even){background:var(--band)}
+#bSave{background:var(--save);color:#1c1606;border-color:var(--save);font-weight:650}
+#bSave:hover:not(:disabled){background:var(--saveHi);border-color:var(--saveHi)}
+#bSave:disabled{background:var(--panel2);color:var(--muted);border-color:var(--line);font-weight:400}
+.grp>summary{list-style:none;cursor:pointer;padding:10px 14px;font-weight:650;display:flex;align-items:center;gap:8px}
+.grp>summary::-webkit-details-marker{display:none}
+.grp>summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg);transition:transform .15s}
+.grp[open]>summary::before{transform:rotate(45deg)}
+.grp>summary .n{margin-left:auto;color:var(--warm);font-weight:500;font-size:12px}
+.prm{padding:6px 14px 8px 28px}
+.prm .top{display:flex;align-items:baseline;gap:6px}
+.prm label{flex:1;font-size:13px}
+.prm .ko{display:block;color:var(--muted);font-size:12px;margin:1px 0 3px}
+.prm input[type=number]{width:76px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:2px 5px;text-align:right;font-variant-numeric:tabular-nums}
+.prm input[type=range]{width:100%;accent-color:var(--muted)}
+.prm.chg label{color:var(--warm)}
+.prm.chg input[type=range]{accent-color:var(--warm)}
+.prm .rs{border:0;background:none;color:var(--muted);padding:0 2px;font-size:12px;visibility:hidden}
+.prm.chg .rs{visibility:visible}
+.view{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto 1fr}
+.vbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 12px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.vbar .lb{color:var(--muted);font-size:12px}
+.seg{display:inline-flex}
+.seg button{border-radius:0;margin-left:-1px}
+.seg button:first-child{border-radius:6px 0 0 6px;margin-left:0}
+.seg button:last-child{border-radius:0 6px 6px 0}
+#stage{position:relative;overflow:hidden;cursor:grab;background:#000}
+#stage.drag{cursor:grabbing}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cap{position:absolute;top:8px;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.6);color:#ddd;font-size:12px;pointer-events:none}
+#stage.over{outline:3px dashed var(--save);outline-offset:-6px}
+#stage.split #toast, #stage.wipemode #toast{left:25%;width:min(420px,calc(50% - 32px))}
+#toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(440px,calc(100% - 32px));background:var(--panel);color:var(--text);border:1px solid var(--line);border-left:4px solid var(--save);border-radius:10px;padding:14px 16px 14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:5}
+#toast h2{font-size:15px;margin:0 0 4px;padding-right:24px}
+#toast p{margin:0 0 10px;color:var(--muted);font-size:13px}
+#toast .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#toast .x{position:absolute;top:8px;right:8px;border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:4px 8px}
+#toast .x:hover{color:var(--text)}
+@media (prefers-reduced-motion:no-preference){#toast{animation:tin .35s ease-out}@keyframes tin{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}}
+#crop{position:absolute;inset:0;background:var(--bg);z-index:8;display:grid;grid-template-rows:auto 1fr}
+#crop .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+#crop .bar .msg{color:var(--muted);font-size:13px;margin-right:auto}
+#crop .area{position:relative;overflow:hidden;cursor:crosshair}
+#cropCv{position:absolute;image-rendering:pixelated}
+#cropBox{position:absolute;border:2px solid var(--save);box-shadow:0 0 0 9999px rgba(0,0,0,.55);pointer-events:none}
+/* tools menu */
+.menu{position:relative}
+.pop{position:absolute;top:calc(100% + 4px);right:0;z-index:20;display:flex;flex-direction:column;gap:4px;min-width:230px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.pop button{text-align:left}
+/* panel top bar: simple/full, undo, redo, reset */
+.sidebar{position:sticky;top:0;z-index:3;display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.sidebar .seg button{padding:5px 10px}
+.sidebar .ib{padding:5px 9px}
+#side.simple .grp>summary{display:none}
+#side.simple .grp{border-bottom:0;background:var(--panel)}
+#side.simple .prm:not(.key){display:none}
+#side.simple .prm.key{padding-left:14px}
+.more{display:none;padding:10px 14px;color:var(--muted);font-size:12px}
+#side.simple .more{display:block}
+/* wipe compare */
+#wipe{position:absolute;top:0;bottom:0;width:0;pointer-events:none;z-index:4}
+#wipe::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--save)}
+#wipe i{position:absolute;top:50%;left:-17px;width:34px;height:34px;margin-top:-17px;border-radius:50%;background:var(--save);color:#1c1606;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#stage.wiping{cursor:ew-resize}
+#fsHint{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);color:#eee;padding:8px 14px;border-radius:8px;font-size:14px;z-index:6;pointer-events:none;transition:opacity .6s}
+#fsHint.fade{opacity:0}
+#stage:fullscreen{background:#000}
+footer{display:flex;gap:18px;flex-wrap:wrap;padding:7px 14px;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+footer b{color:var(--text);font-weight:600}
+footer .warn{color:var(--warm)}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;max-width:520px;padding:20px 22px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h3{margin:0 0 10px}
+dialog .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+dialog input[type=number],dialog input[type=text]{width:90px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:4px 6px}
+dialog input[type=text]{width:100%}
+dialog p{color:var(--muted);margin:6px 0}
+dialog .where{display:block;margin:5px 0;font-size:13px;cursor:pointer}
+dialog .where code{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:12px}
+dialog pre{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;max-height:200px;overflow:auto;font-size:12px}
+.hid{display:none!important}
+@media (max-width:820px){ main{grid-template-columns:1fr;grid-template-rows:45% 55%} aside{border-right:0;border-bottom:1px solid var(--line)} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+  <h1><span data-i="title"></span><small>__VER__</small></h1>
+  <button id="bOpen" data-i="open"></button>
+  <button id="bRef" disabled data-i="openRef"></button>
+  <span class="sp"></span>
+  <label class="lb" for="selPreset" data-i="startPreset"></label>
+  <select id="selPreset"></select>
+  <button id="bImport" data-i="import"></button>
+  <button id="bSave" disabled data-i="save"></button>
+  <div class="menu" id="mSave"><button id="bPng" disabled aria-haspopup="true" aria-expanded="false"><span data-i="png"></span> ▾</button>
+    <div class="pop hid" id="savePop" role="menu">
+      <button id="bPngFull" data-i="pngFull" data-it="pngFullTip"></button>
+      <button id="bPngCmp" data-i="pngCmp" data-it="pngCmpTip"></button>
+      <button id="bPngView" data-i="pngView" data-it="pngViewTip"></button>
+    </div></div>
+  <button id="bLang" title="Language / 언어">한국어</button>
+  <input type="file" id="fImg" accept="image/*" class="hid">
+  <input type="file" id="fRef" accept="image/*" class="hid">
+  <input type="file" id="fPreset" accept=".slangp,.txt" class="hid">
+</header>
+<main>
+  <aside id="side"></aside>
+  <section class="view">
+    <div class="vbar">
+      <span class="lb" data-i="zoom"></span>
+      <div class="seg" id="segZoom">
+        <button data-z="1" class="on" data-it="z1Tip">1:1</button><button data-z="2" data-it="zNTip">2×</button><button data-z="4" data-it="zNTip">4×</button><button data-z="8" data-it="zNTip">8×</button>
+      </div>
+      <button id="bFull" data-it="fullTip">⛶ <span data-i="fullBtn"></span></button>
+      <span class="lb" data-i="view"></span>
+      <div class="seg" id="segMode">
+        <button data-m="wipe" class="on" data-i="wipe" data-it="wipeTip"></button><button data-m="split" data-i="split"></button><button data-m="single" data-i="single"></button><button data-m="hold" data-i="hold" data-it="holdTip"></button>
+      </div>
+      <label class="lb" for="selSystem" data-i="system"></label>
+      <select id="selSystem" disabled></select>
+      <div class="seg hid" id="segLeft" data-it="leftTip">
+        <button data-l="orig" class="on" data-i="lOrig"></button><button data-l="ref" data-i="lRef"></button>
+      </div>
+      <div class="menu" id="mTools"><button id="bTools" aria-haspopup="true" aria-expanded="false"><span data-i="tools"></span> ▾</button>
+        <div class="pop hid" id="toolsPop" role="menu">
+          <button id="bSize" data-i="size"></button>
+          <button id="bCrop" disabled data-i="crop" data-it="cropTip"></button>
+          <button id="bFind" disabled data-i="find" data-it="findTip"></button>
+          <button id="bShare" data-i="share" data-it="shareTip"></button>
+        </div></div>
+      <span class="sp"></span>
+      <span class="lb" id="dprInfo"></span>
+    </div>
+    <div id="stage">
+      <canvas id="gl"></canvas>
+      <div id="wipe" class="hid"><i>◀▶</i></div>
+      <div id="fsHint" class="hid" data-i="fsHint"></div>
+      <span class="cap" id="capL" style="left:8px"></span>
+      <span class="cap" id="capR" style="right:8px"></span>
+      <div id="crop" class="hid">
+        <div class="bar"><span class="msg" data-i="cropMsg"></span>
+          <button id="bCropAll" data-i="cropAll"></button><button id="bCropCancel" data-i="cancel"></button><button id="bCropOk" class="on" data-i="cropOk" disabled></button></div>
+        <div class="area" id="cropArea"><canvas id="cropCv"></canvas><div id="cropBox" class="hid"></div></div>
+      </div>
+      <div id="toast" role="status" class="hid">
+        <button class="x" id="bToastX" aria-label="close">×</button>
+        <h2 data-i="tTitle"></h2>
+        <p data-ih="tBody"></p>
+        <div class="acts"><button id="bOpen2" class="on" data-i="open"></button><button id="bToastOk" data-i="tLater"></button></div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="info"><span data-i="infoEmpty"></span></footer>
+
+<dialog id="dlgSize">
+  <h3 data-i="size"></h3>
+  <p data-i="sizeP"></p>
+  <div class="row"><span style="width:130px" data-i="natRes"></span><input type="number" id="nW" min="16" max="4096"> × <input type="number" id="nH" min="16" max="4096"> <button id="bAuto" data-i="auto"></button></div>
+  <div class="row"><span style="width:130px" data-i="bySys"></span><select id="selSys"><option value="" data-i="pickSys"></option></select></div>
+  <div class="row"><span style="width:130px" data-i="outRes"></span><input type="number" id="oW" min="64" max="8192"> × <input type="number" id="oH" min="64" max="8192"></div>
+  <div class="row"><span style="width:130px" data-i="quick"></span>
+    <select id="selScreen"><option value="" data-i="pickH"></option><option value="2160">4K (2160)</option><option value="1440">QHD (1440)</option><option value="1080">FHD / Ally (1080)</option><option value="720">720</option></select>
+    <select id="selAspect"><option value="4:3">4:3</option><option value="par" data-i="arPar"></option><option value="8:7" data-i="ar87"></option><option value="3:4" data-i="ar34"></option></select>
+    <button id="bApplyScr" data-i="apply"></button></div>
+  <div class="row"><label><input type="checkbox" id="cRot"> <span data-i="rot"></span></label></div>
+  <p data-i="rotP"></p>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button id="bSizeOk" data-i="close"></button></div>
+</dialog>
+
+<dialog id="dlgSys">
+  <h3 data-i="askTitle"></h3>
+  <p id="askP"></p>
+  <div class="row"><select id="askSel"></select></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px;flex-wrap:wrap">
+    <button id="askKeep" data-i="askKeep"></button><button id="askCrop" data-i="crop"></button><button id="askOk" class="on" data-i="askOk"></button></div>
+</dialog>
+
+<dialog id="dlgSave">
+  <h3 data-i="save"></h3>
+  <p data-i="whereQ" style="color:var(--text);margin-bottom:4px"></p>
+  <label class="where"><input type="radio" name="where" value="shaders" checked> <span data-ih="wShaders"></span></label>
+  <label class="where"><input type="radio" name="where" value="slang"> <span data-ih="wSlang"></span></label>
+  <label class="where"><input type="radio" name="where" value="preset"> <span data-ih="wPreset"></span></label>
+  <p id="saveHow"></p>
+  <div class="row"><input type="text" id="saveName"></div>
+  <pre id="savePrev"></pre>
+  <div class="row" style="justify-content:flex-end"><button id="bSaveCancel" data-i="cancel"></button><button id="bSaveGo" class="on" data-i="saveGo"></button></div>
+</dialog>
+
+<script>
+"use strict";
+const PASSES = __PASSES__;
+const PARAMS = __PARAMS__;
+const PRESETS = __PRESETS__;
+const VER = "__VER__";
+const SAMPLE = "__SAMPLE__";
+// a shared link: #preset=4k-ps1&GLOW=0.3 …
+const SHARED = (() => {
+  try {
+    const q = new URLSearchParams(location.hash.slice(1)), k = q.get('preset'); if (!k) return null;
+    const key = k + '.slangp'; if (!(key in PRESETS)) return null;
+    const vals = {}; for (const [n, v] of q) if (n !== 'preset' && PARAMS.some(p => p.name === n) && !isNaN(+v)) vals[n] = +v;
+    return {key, vals};
+  } catch (e) { return null; }
+})();
+
+// ---- UI text in two languages. English is the default outside Korean browsers.
+const TXT = {
+ ko: {
+  title:"Real CRT Phosphor 미리보기", open:"게임 화면 열기", openRef:"비교용 셰이더 화면 열기", startPreset:"시작 프리셋",
+  import:".slangp 불러오기", save:".slangp 저장", png:"이미지 저장", zoom:"배율", fit:"맞춤", view:"보기",
+  split:"나란히", single:"결과만", hold:"누르면 비교", holdTip:"누르고 있는 동안 왼쪽 화면을 보여 줍니다", left:"왼쪽",
+  lOrig:"원본", lRef:"셰이더 화면", lDiff:"차이", size:"화면 크기·입력 설정", find:"쓰인 프리셋 찾기",
+  findTip:"셰이더 화면과 가장 비슷한 프리셋을 찾습니다", result:"결과", capOrig:"원본", capRef:"RetroArch 셰이더 화면", capDiff:"차이 (×4)",
+  eTitle:"RetroArch 스크린샷을 끌어다 놓으세요",
+  e1:"RetroArch에서 <b>셰이더를 끄고</b> 전체화면으로 스크린샷을 찍습니다.<br>(원래 해상도로 저장된 스크린샷도 됩니다.)",
+  e2:"그 파일을 여기에 놓으면 원래 게임 해상도를 알아서 찾아냅니다.",
+  e3:"왼쪽 수치를 바꾸면 결과가 바로 바뀝니다. 마음에 들면 <b>.slangp 저장</b>.",
+  e4:"같은 장면을 셰이더를 켜고 찍은 화면도 열면, RetroArch 결과와 나란히 비교할 수 있습니다. 이미지는 이 브라우저 밖으로 나가지 않습니다.",
+  infoEmpty:"이미지를 열면 셰이더가 이 화면을 어떻게 읽는지 여기에 표시됩니다.",
+  sizeP:"결과는 RetroArch 게임 화면 영역과 같은 크기로 그립니다. 전체화면 스크린샷을 열었다면 그 크기가 자동으로 들어갑니다.",
+  natRes:"게임 원래 해상도", outRes:"결과 화면 크기", quick:"빠른 선택", pickH:"높이 선택…", auto:"자동",
+  arPar:"원본 픽셀 비율", ar87:"8:7 픽셀 (NES·SFC)", ar34:"3:4 세로", apply:"적용", close:"닫기",
+  rot:"세로 게임 (RetroArch가 화면을 돌려서 보여 주는 경우)",
+  rotP:"세로 아케이드 게임은 셰이더가 가로 화면에 적용된 다음 돌아가므로, 스캔라인이 세로로 생깁니다.",
+  cancel:"취소", saveGo:"저장",
+  noGL:"이 브라우저는 WebGL2를 지원하지 않습니다. 최신 Chrome·Edge·Firefox에서 열어 주세요.", portErr:"셰이더 변환 오류:",
+  dpr1:"화면 배율 100% · 1:1 정확", dprN:"윈도우 배율 {0}% 감지·보정함",
+  badImg:"이미지를 열 수 없습니다: {0}",
+  refSize:"셰이더 화면 크기({0})가 결과 크기({1})와 다릅니다. 결과 크기를 셰이더 화면에 맞출까요?",
+  iGame:"게임 해상도 <b>{0}</b>", iFound:" ({0} 화면에서 찾음)", iOut:"결과 <b>{0}</b>", iVert:" · 세로 게임",
+  iLines:"스캔라인 <b>{0}</b>줄 · 한 줄 {1}px", iBox:"평균 계수 <b>{0}</b>", iTri:"RGB 묶음 <b>{0}px</b> · 게임 픽셀 하나 {1}px (약 {2}묶음)",
+  wLines:"스캔라인 수가 정수가 아닙니다. 업스케일했다면 Scanlines·Internal-res average factor를 직접 넣어 주세요.",
+  iNative:"원래 해상도 이미지로 보고 내 모니터 높이의 4:3 화면으로 그립니다. 다르면 ‘화면 크기·입력 설정’에서 바꾸세요.",
+  wShaded:"반복되는 도트가 안 보입니다. 셰이더가 켜진 화면이면 ‘비교용 셰이더 화면’으로 여세요.",
+  reset:"프리셋 값으로 되돌리기", nChanged:"{0}개 바꿈", gDefault:"셰이더 기본값",
+  presetSwitch:"바꾼 값 {0}개가 사라집니다. {1} 프리셋으로 바꿀까요?",
+  importMiss:"이 파일이 가리키는 {0} 는 기본 프리셋 목록에 없습니다. 시작 프리셋에서 고른 바탕 위에, 파일에 적힌 값만 덮어씁니다.",
+  saveNone:"바꾼 값이 없습니다. 그래도 저장하면 프리셋을 그대로 가리키는 파일이 됩니다.",
+  saveHow:"바꾼 값 {0}개만 적습니다. 이 파일을 <b>{1}</b> 폴더에 넣은 다음, Load로 불러와서 Save Game Preset(또는 Core Preset) 하세요. 고른 프리셋 파일 옆에 있어야 동작합니다.",
+  finding:"찾는 중… {0}/{1}", diffAvg:"평균 차이 {0}",
+  fSame:"거의 같습니다. 이 프리셋으로 찍은 화면으로 보입니다.", fClose:"비슷하지만 몇몇 값을 바꾼 것 같습니다.",
+  fNone:"딱 맞는 프리셋이 없습니다. 값을 꽤 바꿨거나 다른 장면일 수 있습니다.",
+  fAsk:"가장 비슷한 프리셋 (0에 가까울수록 같음):\n{0}\n\n{1}\n\n{2}(으)로 시작할까요?",
+  dropAsk:"새 게임 화면으로 열까요?\n취소를 누르면 비교용 셰이더 화면으로 엽니다.",
+  wSoft:"압축(JPEG)된 확대 이미지에서 해상도를 추정했습니다. 맞지 않으면 위쪽 ‘기종’에서 고르세요.",
+  wUnclean:"도트가 깨끗하지 않은 이미지입니다(현대 게임, 흐리게 확대된 화면, 이미 CRT 효과가 들어간 사진). 240줄로 추정했고, 현대 게임이면 위쪽 ‘기종’의 ‘현대 게임·사진’에서 줄 수를 고를 수 있습니다. CRT 효과가 들어간 사진이면 효과가 두 번 겹칩니다. 위쪽 ‘기종’에서 고르거나, 여백이 같이 찍혔다면 ‘게임 영역 자르기’를 쓰세요.",
+  iSmall:" · 작은 이미지라 내 모니터 높이로 그림", bySys:"기종으로 맞추기", pickSys:"기종 선택…",
+  sample:"샘플로 시작", sampleNote:"샘플 그림은 이 툴을 위해 새로 그린 오리지널 그림입니다 (320×240).", iSample:"샘플 그림 (이 툴을 위해 새로 그린 오리지널) · 내 모니터 높이의 4:3 화면으로 그림. 내 게임은 ‘게임 화면 열기’로.",
+  tTitle:"뒤에 보이는 화면은 샘플 그림이에요", tBody:"이제 내 게임으로 해 보세요. RetroArch에서 <b>셰이더를 끄고</b> 전체화면으로 스크린샷을 찍어서 열거나 끌어다 놓으세요. <b>PrintScreen 후 Ctrl+V</b>로 붙여 넣어도 됩니다. 원래 해상도는 알아서 찾아 줍니다.", tLater:"샘플로 먼저 만져 볼게요",
+  zFitTip:"화면 전체가 창에 들어오게 줄여서 봅니다. 줄였기 때문에 RGB 줄은 정확하지 않습니다.", z1Tip:"RetroArch 화면 1픽셀 = 모니터 1픽셀. 전체화면 스크린샷을 이미지 뷰어에서 100%로 보는 것과 같습니다.", zNTip:"1:1을 그만큼 확대해서 봅니다.",
+  zInfo:"1:1 = RetroArch {0} 화면 그대로 (모니터 1픽셀)",
+  pasteAsk:"붙여 넣은 이미지를 새 게임 화면으로 열까요?\n취소를 누르면 비교용 셰이더 화면으로 엽니다.", iCut:"화면 캡처({0})의 검은 테두리를 잘라냄",
+  sysVert:"세로 아케이드", system:"기종", sysAuto:"자동: {0} ({1})", sysSample:"샘플 그림", sysUnknown:"알 수 없음", sysNone:"이미지를 열면 표시", leftTip:"왼쪽 화면에 원본 또는 RetroArch 셰이더 화면을 보여 줍니다",
+  crop:"게임 영역 자르기", cropTip:"창 테두리나 여백이 같이 찍혔을 때, 게임 화면 부분만 골라 냅니다",
+  cropMsg:"게임 화면 부분만 드래그해서 고르세요. 가장자리는 가까운 경계선에 자동으로 맞춥니다.", cropAll:"자르기 취소(전체 사용)", cropOk:"이 영역 사용",
+  iCrop:"{0} 영역을 잘라 씀", iPad:" (찍힌 부분 {0}, 모자란 곳은 검정)",
+  askTitle:"어느 기종 화면인가요?",
+  askP:"찾아낸 크기 <b>{0}</b>가 알려진 기종과 맞지 않습니다.<br>화면 일부만 찍혔다면 기종을 고르세요. 모자란 곳은 검정으로 채웁니다.<br>창 테두리나 여백이 같이 찍혔다면 ‘게임 영역 자르기’를 쓰세요.",
+  askKeep:"그대로 쓰기", askOk:"이 기종으로",
+  finding2:"피치 {0} 확인 중…", fTweak:"그 밖에 바꾼 것으로 보이는 값: {0} (적용하면 평균 차이 {1})",
+  whereQ:"이 파일을 어디에 넣을 건가요?",
+  wShaders:"RetroArch의 <code>shaders</code> 폴더 <b>(가장 쉬움, 추천)</b>",
+  wSlang:"<code>shaders/shaders_slang</code> 폴더",
+  wPreset:"Real CRT Phosphor 프리셋 폴더 (<code>presets/4K</code>·<code>presets/Ally</code>, 바꾼 값만 저장)",
+  saveHowAll:"<b>{1}</b> 폴더에 넣은 다음, RetroArch에서 Quick Menu → Shaders → Load로 이 파일을 고르세요. 계속 쓰려면 Save → Save Game Preset(또는 Core Preset). 프리셋 값까지 전부 파일에 적혀 있어서 다른 프리셋 파일이 없어도 됩니다.",
+  grpRetro:"옛날 게임기", grpModern:"현대 게임·사진",
+  modern240:"현대 게임 · 240줄 (옛날 TV)", modern480:"현대 게임 · 480줄 (방송용·PVM 모니터)", modern540:"현대 게임 · 540줄 (고해상도 CRT)", modern720:"현대 게임 · 720줄 (아주 선명한 CRT)",
+  iModern:"현대 게임 모드: {0}줄 브라운관에 띄운 모습",
+  tools:"도구", share:"설정 공유 링크 복사", shareTip:"바꾼 값을 링크에 담습니다. 링크를 연 사람의 툴에 그 값이 그대로 열립니다",
+  shareDone:"링크를 복사했습니다. 붙여 넣어 공유하세요.", shareLocal:"링크를 복사했습니다. 다만 지금은 내 PC의 파일로 열려 있어서, 웹에 올린 주소에서 복사해야 다른 사람이 열 수 있습니다.", shareCopy:"이 링크를 복사하세요:",
+  simple:"간단히", full:"전체", undo:"되돌리기", redo:"다시 하기", resetAll:"전체 초기화", resetAllTip:"모든 값을 지금 프리셋의 값으로 되돌립니다 (되돌리기 가능)",
+  simpleMore:"자주 쓰는 값만 보여 주고 있습니다. 나머지 {0}개는 위쪽 ‘전체’에서.",
+  wipe:"밀어서 비교", wipeTip:"가운데 막대를 좌우로 밀면 왼쪽은 원본, 오른쪽은 결과로 보입니다",
+  monInfo:"감지한 모니터: {0}",
+  fullBtn:"실제 화면", fullTip:"브라우저를 전체화면으로 바꿔서 RetroArch 전체화면과 같은 크기로 봅니다. Esc로 나갑니다", fsHint:"RetroArch 전체화면과 같은 크기입니다 · Esc로 나가기", fullNo:"이 브라우저는 전체화면을 지원하지 않습니다.",
+  askBig:"현대 게임이나 고해상도 화면이라면 ‘현대 게임·사진’에서 줄 수(240·480·540·720)를 고르세요.",
+  pngFull:"결과 전체 (RetroArch 화면 크기)", pngFullTip:"오른쪽 셰이더 결과를 RetroArch 화면 크기 그대로 저장합니다",
+  pngCmp:"비교 이미지 (원본 | 결과)", pngCmpTip:"지금 보고 있는 부분을 원본과 결과로 나란히 붙이고 라벨을 넣어 저장합니다",
+  pngView:"보이는 화면 그대로", pngViewTip:"지금 화면에 보이는 모습(밀어서 비교 막대 포함)을 1:1로 저장합니다",
+  cmpEdited:"(값 {0}개 수정)", cmpFoot:"게임 {0} · RetroArch 화면 {1} · 1:1 확대 · Real CRT Phosphor Preview {2}",
+  noFloat:"이 브라우저는 실수 버퍼를 지원하지 않아 결과가 RetroArch와 조금 다를 수 있습니다."
+ },
+ en: {
+  title:"Real CRT Phosphor Preview", open:"Open game screenshot", openRef:"Open shader screenshot", startPreset:"Start from",
+  import:"Load .slangp", save:"Save .slangp", png:"Save image", zoom:"Zoom", fit:"Fit", view:"View",
+  split:"Side by side", single:"Result only", hold:"Hold to compare", holdTip:"Shows the left picture while you hold the mouse button", left:"Left",
+  lOrig:"Original", lRef:"Shader shot", lDiff:"Difference", size:"Screen size & input", find:"Find preset used",
+  findTip:"Finds the preset closest to the shader screenshot", result:"Result", capOrig:"Original", capRef:"RetroArch shader shot", capDiff:"Difference (×4)",
+  eTitle:"Drop a RetroArch screenshot here",
+  e1:"In RetroArch, <b>turn the shader off</b> and take a screenshot in fullscreen.<br>(A screenshot saved at the game’s own resolution works too.)",
+  e2:"Drop the file here. The original game resolution is found automatically.",
+  e3:"Change the values on the left and the result updates right away. When you like it, <b>Save .slangp</b>.",
+  e4:"Open a screenshot of the same scene with the shader on as well, and you can compare against RetroArch side by side. Images never leave this browser.",
+  infoEmpty:"Open an image to see how the shader reads it.",
+  sizeP:"The result is drawn at the size of RetroArch’s game area. For a fullscreen screenshot this is filled in automatically.",
+  natRes:"Game resolution", outRes:"Result size", quick:"Quick pick", pickH:"Screen height…", auto:"Auto",
+  arPar:"Square pixels", ar87:"8:7 pixels (NES/SNES)", ar34:"3:4 portrait", apply:"Apply", close:"Close",
+  rot:"Vertical game (RetroArch rotates the picture)",
+  rotP:"For vertical arcade games the shader runs on the landscape picture and is then rotated, so scanlines run vertically.",
+  cancel:"Cancel", saveGo:"Save",
+  noGL:"This browser does not support WebGL2. Please open it in a current Chrome, Edge or Firefox.", portErr:"Shader port error:",
+  dpr1:"Display scale 100% · 1:1 exact", dprN:"display scale {0}% detected and corrected",
+  badImg:"Can’t open the image: {0}",
+  refSize:"The shader screenshot ({0}) is not the result size ({1}). Match the result size to the screenshot?",
+  iGame:"Game resolution <b>{0}</b>", iFound:" (found in a {0} screenshot)", iOut:"Result <b>{0}</b>", iVert:" · vertical game",
+  iLines:"Scanlines <b>{0}</b> · {1}px each", iBox:"Average factor <b>{0}</b>", iTri:"RGB triad <b>{0}px</b> · one game pixel {1}px (about {2} triads)",
+  wLines:"The scanline count is not a whole number. If the game is upscaled, set Scanlines and Internal-res average factor yourself.",
+  iNative:"Read as a native-resolution image and drawn as a 4:3 screen at your monitor’s height. Change it in Screen size & input if needed.",
+  wShaded:"No repeating game pixels found. If the shader was on, open it as the shader screenshot instead.",
+  reset:"Back to the preset value", nChanged:"{0} changed", gDefault:"Shader defaults",
+  presetSwitch:"Changed values ({0}) will be lost. Switch to {1}?",
+  importMiss:"{0}, which this file references, is not one of the bundled presets. Its values are applied on top of the preset chosen in Start from.",
+  saveNone:"Nothing has changed. Saving now gives a file that just points to the preset.",
+  saveHow:"Only the changed values ({0}) are written. Put this file in the <b>{1}</b> folder, Load it, then Save Game Preset (or Core Preset). It only works next to the chosen preset file.",
+  finding:"Searching… {0}/{1}", diffAvg:"average difference {0}",
+  fSame:"Practically identical. The screenshot looks like it was taken with this preset.", fClose:"Close, but a few values seem to have been changed.",
+  fNone:"No preset matches well. Values may have been changed a lot, or the scene is different.",
+  fAsk:"Closest presets (0 = identical):\n{0}\n\n{1}\n\nStart from {2}?",
+  dropAsk:"Open as a new game screenshot?\nCancel opens it as the shader screenshot.",
+  wSoft:"Resolution estimated from a compressed (JPEG) enlargement. If it looks wrong, pick the system at the top.",
+  wUnclean:"This image has no clean pixels (a modern game, a smoothly scaled picture, or a photo that already has a CRT look). A 240-line picture is assumed; for a modern game, pick a line count under Modern games & photos in System. and a CRT photo gets the effect twice. Pick the system at the top, or use Crop game area if margins were captured.",
+  iSmall:" · small image, drawn at your monitor’s height", bySys:"Match a system", pickSys:"Choose a system…",
+  sample:"Try the sample", sampleNote:"The sample is an original picture made for this tool (320×240).", iSample:"Sample picture (original, made for this tool) · drawn as a 4:3 screen at your monitor’s height. Use Open game screenshot for your own game.",
+  tTitle:"The picture behind this is a sample", tBody:"Now try your own game. In RetroArch, <b>turn the shader off</b>, take a fullscreen screenshot and open or drop it here. You can also press <b>PrintScreen, then Ctrl+V</b>. The original resolution is found automatically.", tLater:"Play with the sample first",
+  zFitTip:"Shrinks the whole screen to fit the window. Because it is shrunk, the RGB stripes are not exact.", z1Tip:"One RetroArch screen pixel = one monitor pixel. Same as viewing a fullscreen screenshot at 100% in an image viewer.", zNTip:"Enlarges the 1:1 view by this much.",
+  zInfo:"1:1 = RetroArch {0} screen as is (one monitor pixel)",
+  pasteAsk:"Open the pasted image as a new game screenshot?\nCancel opens it as the shader screenshot.", iCut:"Black side bars of the {0} capture removed",
+  sysVert:"vertical arcade", system:"System", sysAuto:"Auto: {0} ({1})", sysSample:"sample picture", sysUnknown:"unknown", sysNone:"shown after opening an image", leftTip:"Show the original or the RetroArch shader shot on the left",
+  crop:"Crop game area", cropTip:"When a window frame or margins were captured too, keep only the game picture",
+  cropMsg:"Drag a box around the game picture. The edges snap to the nearest border.", cropAll:"Undo crop (use all)", cropOk:"Use this area",
+  iCrop:"cropped to {0}", iPad:" (captured part {0}, the rest black)",
+  askTitle:"Which system is this?",
+  askP:"The size found, <b>{0}</b>, does not match a known system.<br>If only part of the screen was captured, pick the system and the missing area is filled with black.<br>If a window frame or margins were captured, use Crop game area.",
+  askKeep:"Use as is", askOk:"Use this system",
+  finding2:"Checking pitch {0}…", fTweak:"Values that also seem to have been changed: {0} (average difference {1} with them)",
+  whereQ:"Where will you put this file?",
+  wShaders:"RetroArch's <code>shaders</code> folder <b>(easiest, recommended)</b>",
+  wSlang:"the <code>shaders/shaders_slang</code> folder",
+  wPreset:"a Real CRT Phosphor preset folder (<code>presets/4K</code> or <code>presets/Ally</code>, changed values only)",
+  saveHowAll:"Put it in the <b>{1}</b> folder, then in RetroArch: Quick Menu > Shaders > Load and pick this file. To keep it, Save > Save Game Preset (or Core Preset). All values are written into the file, so no other preset file is needed.",
+  grpRetro:"Retro systems", grpModern:"Modern games & photos",
+  modern240:"Modern game · 240 lines (old TV)", modern480:"Modern game · 480 lines (broadcast / PVM monitor)", modern540:"Modern game · 540 lines (high-res CRT)", modern720:"Modern game · 720 lines (very sharp CRT)",
+  iModern:"Modern game mode: shown on a {0}-line CRT",
+  tools:"Tools", share:"Copy settings link", shareTip:"Puts your changed values in a link. Whoever opens it gets the same values",
+  shareDone:"Link copied. Paste it to share.", shareLocal:"Link copied. This page is opened as a file on your PC, though: copy the link from the web address so others can open it.", shareCopy:"Copy this link:",
+  simple:"Simple", full:"All", undo:"Undo", redo:"Redo", resetAll:"Reset all", resetAllTip:"Puts every value back to the current preset (can be undone)",
+  simpleMore:"Showing the most used values. The other {0} are under All.",
+  wipe:"Wipe", wipeTip:"Drag the bar in the middle: original on the left, result on the right",
+  monInfo:"Monitor detected: {0}",
+  fullBtn:"Actual screen", fullTip:"Goes fullscreen so the result is the same size as RetroArch fullscreen. Esc to leave", fsHint:"Same size as RetroArch fullscreen · Esc to leave", fullNo:"This browser does not support fullscreen.",
+  askBig:"For a modern game or another high-resolution picture, pick a line count (240, 480, 540, 720) under Modern games & photos.",
+  pngFull:"Whole result (RetroArch screen size)", pngFullTip:"Saves the shader result at the size of RetroArch's screen",
+  pngCmp:"Comparison (original | result)", pngCmpTip:"Puts the part you are looking at side by side, original and result, with labels",
+  pngView:"The view as shown", pngViewTip:"Saves exactly what is on screen now (wipe bar included), at 1:1",
+  cmpEdited:"({0} values changed)", cmpFoot:"Game {0} · RetroArch screen {1} · shown 1:1 · Real CRT Phosphor Preview {2}",
+  noFloat:"This browser lacks float buffers, so the result may differ slightly from RetroArch."
+ }
+};
+const DESC_EN = {
+  RASTER_LINES:"Scanlines in the picture. 0 = auto. For upscaled PSP, use 272.",
+  CONTENT_SCALE:"Internal resolution factor. 0 = auto. Enter the upscale factor (2, 4…) to average back to the original grid.",
+  DITHER:"Blends Mega Drive style 1-pixel checker patterns into in-between colours.",
+  SOFT_ALL:"Softens the original pixels slightly in every direction.",
+  LUMA_BLUR:"Horizontal blur of the brightness signal. Pixel edges get softer.",
+  LUMA_TAIL:"How far brightness smears to the right (analog signal trail).",
+  PEAKING:"TV sharpness boost. Adds a thin outline at edges.",
+  CHROMA_BLUR:"Colour bleed width. Colour spreads wider than brightness.",
+  CHROMA_TAIL:"How far colour smears to the right.",
+  SATURATION:"Saturation.", HUE:"Hue rotation (the TV tint knob).",
+  LV_BLACK:"Black point. Raise it to make dark areas blacker.",
+  LV_WHITE:"White point. Lower it so bright areas reach white sooner.",
+  S_LOW:"Contrast in the shadows (S-curve).", S_HIGH:"Contrast in the highlights (S-curve).",
+  GAMMA_IN:"CRT gamma. Higher values darken the mid-tones.",
+  WP_R:"White balance, red.", WP_G:"White balance, green.", WP_B:"White balance, blue.",
+  VERT_BLUR:"How much neighbouring scanlines blend vertically.",
+  BEAM_DARK:"Scanline thickness for dark colours.", BEAM_BRIGHT:"Scanline thickness for bright colours. A bigger gap makes bright areas swell.",
+  GLOW:"Glow (bloom) strength.", GLOW_R:"Glow radius.",
+  MASK_PITCH:"Width of one R,G,B stripe group in screen pixels. 0 = auto (6 at 4K).",
+  MASK_SIZE:"Triad size multiplier for auto pitch.",
+  ST_DARK:"Phosphor stripe width for dark colours.", ST_BRIGHT:"Phosphor stripe width for bright colours. Large values melt bright areas into glowing blobs.",
+  ST_EDGE:"Softness of the phosphor stripe edges.",
+  MELT_START:"Brightness where highlights start melting into blobs.", MELT_END:"Brightness where they are fully melted.",
+  MELT_DARK:"Melt amount in dark areas.", MELT_BRIGHT:"Melt amount in bright areas.", MELT_BLOB:"Size of one melted glow blob.",
+  CONVERGE:"Red shifts left, blue shifts right (old TV look).",
+  RGB_BLUR_X:"Horizontal blur after the RGB split.", RGB_BLUR_Y:"Vertical blur after the RGB split.",
+  KNEE:"Brightness where highlights start rolling off softly.", FINAL_BLUR:"Very subtle blur over the whole screen.",
+  BRIGHT:"Overall brightness.",
+  MASK_TYPE:"0 = aperture grille (vertical stripes), 1 = slot mask.",
+  SLOT_LOCK:"Align the slots to the scanlines.", SLOT_LINES:"Slot height in scanlines.",
+  SLOT_VADJ:"Fine-tune the vertical slot pitch.", SLOT_SHAPE:"Straight slot sides.",
+  SLOT_HEIGHT:"Vertical slot pitch when not aligned to scanlines.", SLOT_GAP:"Size of the gap between slots.",
+  SLOT_DEPTH:"Darkness of the slot gap (1 = fully black).", SLOT_EDGE:"Softness of the slot gap edges.", SLOT_MELT:"How much bright glow fills the slot gaps."
+};
+let LANG = (() => { try { return localStorage.getItem('rcp-lang'); } catch (e) { return null; } })() ||
+           ((navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+function t(k, ...a) { let v = (TXT[LANG] && TXT[LANG][k]) ?? TXT.en[k] ?? k; a.forEach((x, i) => v = v.split('{' + i + '}').join(x)); return v; }
+function desc(n) { return LANG === 'ko' ? (KO[n] || '') : (DESC_EN[n] || ''); }
+function applyLang() {
+  document.documentElement.lang = LANG;
+  document.title = t('title') + ' ' + VER;
+  document.querySelectorAll('[data-i]').forEach(e => e.textContent = t(e.dataset.i));
+  document.querySelectorAll('[data-ih]').forEach(e => e.innerHTML = t(e.dataset.ih));
+  document.querySelectorAll('[data-it]').forEach(e => e.title = t(e.dataset.it));
+  $('side').setAttribute('aria-label', LANG === 'ko' ? '셰이더 수치' : 'Shader values');
+  $('bLang').textContent = LANG === 'ko' ? 'English' : '한국어';
+}
+
+// ---- Korean one-liners for each control (what changes on screen)
+const KO = {
+  RASTER_LINES:"화면의 스캔라인 수. 0이면 자동. PSP를 업스케일했다면 272로.",
+  CONTENT_SCALE:"내부 해상도 배율. 0이면 자동. 업스케일한 배율(2, 4 등)을 넣으면 원래 격자로 평균 냅니다.",
+  DITHER:"메가드라이브식 1픽셀 체크무늬를 섞어서 중간색으로 만듭니다.",
+  SOFT_ALL:"원래 도트를 사방으로 살짝 흐립니다.",
+  LUMA_BLUR:"밝기 신호의 가로 흐림. 도트 경계가 부드러워집니다.",
+  LUMA_TAIL:"밝기가 오른쪽으로 끌리는 정도 (아날로그 신호 잔상).",
+  PEAKING:"TV의 선명도 보정. 경계에 얇은 테두리가 생깁니다.",
+  CHROMA_BLUR:"색 번짐 폭. 색이 밝기보다 넓게 퍼집니다.",
+  CHROMA_TAIL:"색이 오른쪽으로 끌리는 정도.",
+  SATURATION:"채도.", HUE:"색조 돌리기 (TV의 색상 손잡이).",
+  LV_BLACK:"검정 기준점. 올리면 어두운 부분이 더 검어집니다.",
+  LV_WHITE:"흰색 기준점. 내리면 밝은 부분이 더 빨리 하얘집니다.",
+  S_LOW:"어두운 쪽 대비 (S커브).", S_HIGH:"밝은 쪽 대비 (S커브).",
+  GAMMA_IN:"CRT 감마. 올리면 중간 톤이 어두워집니다.",
+  WP_R:"흰색 균형 빨강.", WP_G:"흰색 균형 초록.", WP_B:"흰색 균형 파랑.",
+  VERT_BLUR:"스캔라인끼리 세로로 섞이는 정도.",
+  BEAM_DARK:"어두운 색의 스캔라인 굵기.", BEAM_BRIGHT:"밝은 색의 스캔라인 굵기. 차이가 클수록 밝은 곳이 부풀어 보입니다.",
+  GLOW:"빛 번짐(블룸) 세기.", GLOW_R:"빛 번짐 반경.",
+  MASK_PITCH:"R·G·B 줄 한 묶음의 폭 (화면 픽셀). 0이면 자동 (4K에서 6).",
+  MASK_SIZE:"자동 피치일 때 묶음 크기 배율.",
+  ST_DARK:"어두운 색의 형광체 줄 폭.", ST_BRIGHT:"밝은 색의 형광체 줄 폭. 크면 밝은 곳이 줄 없이 빛 덩어리로 녹습니다.",
+  ST_EDGE:"형광체 줄 가장자리의 부드러움.",
+  MELT_START:"이 밝기부터 빛 덩어리로 녹기 시작.", MELT_END:"이 밝기에서 완전히 녹음.",
+  MELT_DARK:"어두운 곳의 녹는 양.", MELT_BRIGHT:"밝은 곳의 녹는 양.", MELT_BLOB:"녹은 빛 덩어리 하나의 크기.",
+  CONVERGE:"R은 왼쪽, B는 오른쪽으로 어긋남 (옛 TV 느낌).",
+  RGB_BLUR_X:"RGB 줄을 나눈 뒤 가로 흐림.", RGB_BLUR_Y:"RGB 줄을 나눈 뒤 세로 흐림.",
+  KNEE:"이 밝기부터 하이라이트를 부드럽게 눌러 줍니다.", FINAL_BLUR:"화면 전체를 아주 은은하게 흐림.",
+  BRIGHT:"전체 밝기.",
+  MASK_TYPE:"0 = 그릴(세로 줄), 1 = 슬롯 마스크.",
+  SLOT_LOCK:"슬롯을 스캔라인에 맞춤.", SLOT_LINES:"슬롯 하나가 몇 스캔라인 높이인지.",
+  SLOT_VADJ:"슬롯 세로 간격 미세 조정.", SLOT_SHAPE:"슬롯 옆면을 곧게.",
+  SLOT_HEIGHT:"스캔라인에 안 맞출 때 슬롯 세로 간격.", SLOT_GAP:"슬롯 틈의 크기.",
+  SLOT_DEPTH:"슬롯 틈의 진하기 (1 = 완전히 검정).", SLOT_EDGE:"슬롯 틈 가장자리의 부드러움.", SLOT_MELT:"밝은 곳에서 슬롯 틈이 빛으로 메워지는 정도."
+};
+
+// ---- the viewer's monitor: start with a result the size of their own screen, and the matching preset family
+const MON = (() => {
+  const d = window.devicePixelRatio || 1, w = Math.round(screen.width * d), h = Math.round(screen.height * d);
+  const hs = [720, 1080, 1200, 1440, 1600, 2160];
+  let H = hs.reduce((a, b) => Math.abs(b - h) < Math.abs(a - h) ? b : a);
+  if (h > 2400) H = 2160;
+  return {w, h, H};
+})();
+const SCREEN_H = MON.H, PFX = SCREEN_H >= 1400 ? '4k-' : 'ally-', BASE_KEY = PFX + 'base.slangp';
+// ---- state
+const S = {
+  img:null, nat:null, natW:0, natH:0, capW:0, capH:0,
+  outW:Math.round(SCREEN_H * 4 / 3), outH:SCREEN_H, rot:false, ref:null, presetKey:BASE_KEY, wipe:0.5,
+  vals:{}, base:{}, zoom:1, mode:'wipe', left:'orig', panX:0.5, panY:0.5, hold:false, dirty:true
+};
+const $ = id => document.getElementById(id);
+const defaults = Object.fromEntries(PARAMS.map(p => [p.name, p.d]));
+const isHeader = p => p.lo === p.hi;
+
+// ================= WebGL pipeline =================
+const canvas = $('gl');
+const gl = canvas.getContext('webgl2', {antialias:false, premultipliedAlpha:false, preserveDrawingBuffer:true});
+if (!gl) { document.body.innerHTML = '<p style="padding:30px">' + t('noGL') + '</p>'; throw new Error('no webgl2'); }
+const hasFloat = !!gl.getExtension('EXT_color_buffer_float');
+gl.getExtension('OES_texture_float_linear');
+
+function compile(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function program(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vs)); gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+  gl.bindAttribLocation(p, 0, 'aPos'); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+const quad = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+// same layout as real-crt-phosphor.slangp: scale (s = source, v = viewport), linear input filter, float buffer, inputs
+const LAYOUT = [
+  {sc:'s', lin:0, fl:0, in:{Source:'orig'}},
+  {sc:'s', lin:0, fl:0, in:{Source:0}},
+  {sc:'s', lin:0, fl:0, in:{Source:1}},
+  {sc:'s', lin:0, fl:1, in:{Source:2}},
+  {sc:'s', lin:0, fl:0, in:{Dither:2, Kern:3}},
+  {sc:'s', lin:0, fl:0, in:{Source:4}},
+  {sc:'s', lin:0, fl:1, in:{Source:5}},
+  {sc:'s', lin:1, fl:1, in:{Source:6}},
+  {sc:'v', lin:1, fl:1, in:{Source:7, Signal:5}},
+  {sc:'v', lin:1, fl:1, in:{Source:8}},
+  {sc:'v', lin:1, fl:1, in:{Source:9}},
+  {sc:'v', lin:1, fl:0, in:{Source:10}}
+];
+let progs;
+try { progs = PASSES.map(p => program(p.vs, p.fs)); }
+catch (e) { document.body.innerHTML = '<pre style="padding:20px;white-space:pre-wrap">' + t('portErr') + '\n' + e.message + '</pre>'; throw e; }
+const locs = progs.map(p => {
+  const L = {};
+  for (const n of ['SourceSize','OriginalSize','OutputSize','DitherSize','KernSize','SignalSize','Source','Dither','Kern','Signal'])
+    L[n] = gl.getUniformLocation(p, n);
+  L.p = PARAMS.map(q => gl.getUniformLocation(p, q.name));
+  return L;
+});
+
+function makeTex(w, h, float, data) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  if (float && hasFloat) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+  else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data || null);
+  return {t, w, h};
+}
+function texFromCanvas(c) {
+  const t = makeTex(c.width, c.height, false, null);
+  gl.bindTexture(gl.TEXTURE_2D, t.t);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, c);
+  return t;
+}
+function freeTex(t) { if (t) gl.deleteTexture(t.t); }
+let fbs = [], fbKey = '', origTex = null, refTex = null, resultTex = null;
+function ensureFBs(iw, ih, ow, oh) {
+  const key = [iw, ih, ow, oh].join('x');
+  if (key === fbKey) return;
+  fbs.forEach(f => { gl.deleteFramebuffer(f.fb); freeTex(f.tex); });
+  fbs = LAYOUT.map(L => {
+    const w = L.sc === 's' ? iw : ow, h = L.sc === 's' ? ih : oh;
+    const tex = makeTex(w, h, L.fl, null);
+    const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.t, 0);
+    return {fb, tex};
+  });
+  resultTex = fbs[11].tex; fbKey = key;
+}
+const sz = t => [t.w, t.h, 1 / t.w, 1 / t.h];
+function runPipeline() {
+  if (!origTex) return;
+  const ow = S.rot ? S.outH : S.outW, oh = S.rot ? S.outW : S.outH;
+  ensureFBs(origTex.w, origTex.h, ow, oh);
+  const vals = PARAMS.map(p => S.vals[p.name] ?? p.d);
+  for (let i = 0; i < 12; i++) {
+    const L = LAYOUT[i], P = progs[i], U = locs[i], out = fbs[i].tex;
+    gl.useProgram(P);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbs[i].fb); gl.viewport(0, 0, out.w, out.h);
+    let unit = 0, src = null;
+    for (const [nm, idx] of Object.entries(L.in)) {
+      const t = idx === 'orig' ? origTex : fbs[idx].tex;
+      if (nm === 'Source') src = t;
+      gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t.t);
+      const f = L.lin ? gl.LINEAR : gl.NEAREST;
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, f); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, f);
+      if (U[nm]) gl.uniform1i(U[nm], unit);
+      unit++;
+    }
+    if (!src) src = fbs[i - 1].tex;
+    if (U.SourceSize) gl.uniform4fv(U.SourceSize, sz(src));
+    if (U.OriginalSize) gl.uniform4fv(U.OriginalSize, sz(origTex));
+    if (U.OutputSize) gl.uniform4fv(U.OutputSize, sz(out));
+    if (U.DitherSize) gl.uniform4fv(U.DitherSize, sz(fbs[2].tex));
+    if (U.KernSize) gl.uniform4fv(U.KernSize, sz(fbs[3].tex));
+    if (U.SignalSize) gl.uniform4fv(U.SignalSize, sz(fbs[5].tex));
+    U.p.forEach((l, k) => { if (l) gl.uniform1f(l, vals[k]); });
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+}
+
+// ---- display: nearest view with pan/zoom, box-filtered when zoomed out, optional rotation and diff
+const DISP_FS = `#version 300 es
+precision highp float; precision highp int;
+uniform sampler2D T, T2; uniform vec2 uTex, uTex2, uLog, uView, uOff; uniform float uZoom; uniform int uRot, uDiff, uRotTex;
+out vec4 o;
+vec3 fetchT(sampler2D s, vec2 tsz, vec2 p, int rot) {      // p in logical (displayed) pixels
+  vec2 q = p;
+  if (rot == 1) q = vec2(uLog.y - p.y, p.x);               // displayed portrait -> landscape texture (core picture turned back, ROT_DIR = 1)
+  vec2 sc = rot == 1 ? tsz / uLog.yx : tsz / uLog;
+  ivec2 ip = ivec2(clamp(floor(q * sc), vec2(0.0), tsz - 1.0));
+  return texelFetch(s, ip, 0).rgb;
+}
+void main() {
+  vec2 f = vec2(gl_FragCoord.x, uView.y - gl_FragCoord.y) - vec2(0.0);
+  vec2 p0 = uOff + (floor(f) + 0.5) / uZoom;
+  if (any(lessThan(p0, vec2(0.0))) || any(greaterThanEqual(p0, uLog))) { o = vec4(0.06, 0.06, 0.065, 1.0); return; }
+  vec3 c = vec3(0.0);
+  if (uZoom < 0.999) {
+    int n = int(min(ceil(1.0 / uZoom), 6.0)); float fn = float(n);
+    for (int y = 0; y < 6; y++) { if (y >= n) break; for (int x = 0; x < 6; x++) { if (x >= n) break;
+      vec2 p = uOff + (floor(f) + (vec2(float(x), float(y)) + 0.5) / fn) / uZoom;
+      vec3 a = fetchT(T, uTex, p, uRotTex);
+      if (uDiff == 1) a = abs(a - fetchT(T2, uTex2, p, 0)) * 4.0;
+      c += a; } }
+    c /= fn * fn;
+  } else {
+    c = fetchT(T, uTex, p0, uRotTex);
+    if (uDiff == 1) c = abs(c - fetchT(T2, uTex2, p0, 0)) * 4.0;
+  }
+  o = vec4(c, 1.0);
+}`;
+const DISP_VS = `#version 300 es
+in vec2 aPos; void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }`;
+const dprog = program(DISP_VS, DISP_FS);
+const DL = Object.fromEntries(['T','T2','uTex','uTex2','uLog','uView','uOff','uZoom','uRot','uDiff','uRotTex'].map(n => [n, gl.getUniformLocation(dprog, n)]));
+
+function dpr() { return window.devicePixelRatio || 1; }
+function resizeCanvas() {
+  const r = canvas.getBoundingClientRect(), d = dpr();
+  const w = Math.round(r.width * d), h = Math.round(r.height * d);
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  $('dprInfo').title = t('monInfo', MON.w + '×' + MON.h);
+  $('dprInfo').textContent = S.img ? t('zInfo', S.outW + '×' + S.outH) + (d === 1 ? '' : ' · ' + t('dprN', Math.round(d * 100))) : (d === 1 ? t('dpr1') : t('dprN', Math.round(d * 100)));
+}
+function zoomValue(paneW, paneH) {
+  if (S.zoom === 'fit') return Math.min(paneW / S.outW, paneH / S.outH);
+  return +S.zoom;
+}
+function drawPane(x, w, h, which, clipW) {
+  gl.viewport(x, 0, w, h); gl.scissor(x, 0, clipW ?? w, h);
+  const z = zoomValue(w, h);
+  const vw = w / z, vh = h / z;
+  const offX = Math.max(0, Math.min(S.outW - vw, S.panX * S.outW - vw / 2));
+  const offY = Math.max(0, Math.min(S.outH - vh, S.panY * S.outH - vh / 2));
+  const ox = vw >= S.outW ? (S.outW - vw) / 2 : offX, oy = vh >= S.outH ? (S.outH - vh) / 2 : offY;
+  let T = resultTex, rotTex = S.rot ? 1 : 0, diff = 0;
+  if (which === 'orig') { T = origDisp; rotTex = 0; }
+  if (which === 'ref') { T = refTex; rotTex = 0; }
+  if (which === 'diff') { T = resultTex; diff = 1; }
+  if (!T) return;
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, T.t); gl.uniform1i(DL.T, 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, (refTex || T).t); gl.uniform1i(DL.T2, 1);
+  gl.uniform2f(DL.uTex, T.w, T.h); gl.uniform2f(DL.uTex2, (refTex || T).w, (refTex || T).h);
+  gl.uniform2f(DL.uLog, S.outW, S.outH); gl.uniform2f(DL.uView, h, h);
+  gl.uniform2f(DL.uView, w, h);
+  gl.uniform2f(DL.uOff, ox, oy); gl.uniform1f(DL.uZoom, z);
+  gl.uniform1i(DL.uRotTex, rotTex); gl.uniform1i(DL.uDiff, diff);
+  // gl_FragCoord is canvas-absolute: shift by pane origin
+  gl.uniform2f(DL.uOff, ox - x / z, oy);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+let origDisp = null;
+function draw() {
+  resizeCanvas();
+  if (S.dirty) { runPipeline(); S.dirty = false; }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.useProgram(dprog); gl.enable(gl.SCISSOR_TEST);
+  gl.clearColor(0, 0, 0, 1); gl.disable(gl.SCISSOR_TEST); gl.viewport(0, 0, canvas.width, canvas.height); gl.clear(gl.COLOR_BUFFER_BIT); gl.enable(gl.SCISSOR_TEST);
+  if (!origTex) return;
+  const W = canvas.width, H = canvas.height;
+  const leftWhich = S.left;
+  stage.classList.toggle('split', S.mode === 'split');
+  $('wipe').classList.toggle('hid', S.mode !== 'wipe'); stage.classList.toggle('wipemode', S.mode === 'wipe');
+  if (S.mode === 'wipe') {           // one picture: the original left of the bar, the result right of it
+    const wx = Math.round(W * S.wipe);
+    drawPane(0, W, H, 'res');
+    if (wx > 0) drawPane(0, W, H, leftWhich, wx);
+    $('wipe').style.left = (S.wipe * 100) + '%';
+    $('capL').classList.toggle('hid', S.wipe < 0.08); $('capR').classList.toggle('hid', S.wipe > 0.92);
+    $('capL').textContent = leftName(); $('capR').textContent = t('result');
+  } else if (S.mode === 'split') {
+    const half = Math.floor(W / 2);
+    drawPane(0, half - 1, H, leftWhich); drawPane(half + 1, W - half - 1, H, 'res');
+    $('capL').classList.remove('hid'); $('capR').classList.remove('hid'); $('capL').textContent = leftName(); $('capR').textContent = t('result');
+  } else {
+    drawPane(0, W, H, S.mode === 'hold' && S.hold ? leftWhich : 'res');
+    $('capL').classList.add('hid'); $('capR').classList.remove('hid');
+    $('capR').textContent = S.mode === 'hold' && S.hold ? leftName() : t('result');
+  }
+  gl.disable(gl.SCISSOR_TEST);
+}
+const leftName = () => t({orig:'capOrig', ref:'capRef', diff:'capDiff'}[S.left]);
+let raf = 0;
+function redraw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); }
+function changed() { S.dirty = true; redraw(); }
+
+// ================= input loading & native-size detection =================
+function imgToCanvas(img) {
+  const c = document.createElement('canvas'); c.width = img.naturalWidth || img.width; c.height = img.naturalHeight || img.height;
+  c.getContext('2d', {willReadFrequently:true}).drawImage(img, 0, 0); return c;
+}
+// A shader-off screenshot is the game picture enlarged with nearest-neighbour: every change of colour
+// falls on a block edge. Find the smallest grid whose block edges explain (almost) all colour changes.
+function detectAxis(data, W, H, horizontal) {
+  const L = horizontal ? W : H, M = horizontal ? H : W;
+  const step = Math.max(1, Math.floor(M / 400));
+  const T = [];
+  for (let i = 1; i < L; i++) {
+    let ch = false;
+    for (let j = 0; j < M && !ch; j += step) {
+      const a = horizontal ? (j * W + i) * 4 : (i * W + j) * 4;
+      const b = horizontal ? a - 4 : a - W * 4;
+      if (Math.abs(data[a] - data[b]) > 2 || Math.abs(data[a+1] - data[b+1]) > 2 || Math.abs(data[a+2] - data[b+2]) > 2) ch = true;
+    }
+    if (ch) T.push(i);
+  }
+  if (T.length < 8) return L;
+  for (let n = 32; n <= Math.min(L, 1400); n++) {
+    const s = L / n; if (s < 1.5) break;              // an enlargement needs blocks of at least 1.5 px
+    const tol = Math.min(1.01, 0.3 * s); let ok = 0;
+    for (const t of T) { const k = Math.round(t / s); if (Math.abs(t - k * s) <= tol) ok++; }
+    if (ok / T.length >= 0.985) return n;
+  }
+  return L;
+}
+// A partial capture: blocks are clean but the grid does not start at the image edge.
+// Find the largest block size s (and its offset) that explains the colour changes. Returns {n, s, ph} or null.
+function detectAxisPhase(data, W, H, horizontal) {
+  const L = horizontal ? W : H, M = horizontal ? H : W, step = Math.max(1, Math.floor(M / 400));
+  const T = [];
+  for (let i = 1; i < L; i++) {
+    let ch = false;
+    for (let j = 0; j < M && !ch; j += step) {
+      const a = horizontal ? (j * W + i) * 4 : (i * W + j) * 4, b = horizontal ? a - 4 : a - W * 4;
+      if (Math.abs(data[a] - data[b]) > 2 || Math.abs(data[a+1] - data[b+1]) > 2 || Math.abs(data[a+2] - data[b+2]) > 2) ch = true;
+    }
+    if (ch) T.push(i);
+  }
+  if (T.length < 12) return null;
+  for (let s = Math.min(24, L / 16); s >= 1.5; s -= 0.005) {
+    let cx = 0, cy = 0;
+    for (const t of T) { const a = 2 * Math.PI * t / s; cx += Math.cos(a); cy += Math.sin(a); }
+    if (Math.hypot(cx, cy) / T.length < 0.6) continue;            // changes are not periodic at this size
+    let ph = (Math.atan2(cy, cx) / (2 * Math.PI)) * s; ph = ((ph % s) + s) % s; if (ph > s - 0.5) ph -= s;
+    const tol = Math.min(1.01, 0.3 * s); let ok = 0;
+    for (const t of T) { let d = ((t - ph) % s + s) % s; d = Math.min(d, s - d); if (d <= tol) ok++; }
+    if (ok / T.length >= 0.985) {
+      const n = Math.floor((L - ph) / s + 0.02);
+      return n >= 16 ? {n, s, ph} : null;
+    }
+  }
+  return null;
+}
+function resamplePhase(c, nw, nh, P) {    // sample the centre of every whole block, starting at the detected offset
+  const src = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  const o = document.createElement('canvas'); o.width = nw; o.height = nh;
+  const ctx = o.getContext('2d'), id = ctx.createImageData(nw, nh), d = id.data;
+  for (let y = 0; y < nh; y++) {
+    const sy = Math.min(c.height - 1, Math.floor(P.py + (y + 0.5) * P.sy));
+    for (let x = 0; x < nw; x++) {
+      const sx = Math.min(c.width - 1, Math.floor(P.px + (x + 0.5) * P.sx)), a = (sy * c.width + sx) * 4, b = (y * nw + x) * 4;
+      d[b] = src[a]; d[b+1] = src[a+1]; d[b+2] = src[a+2]; d[b+3] = 255;
+    }
+  }
+  ctx.putImageData(id, 0, 0); return o;
+}
+// Fallback for compressed (JPEG) enlargements: edges no longer land exactly on block borders,
+// but their energy still piles up there. Returns [n, strength]; strength ~1 means no grid at all.
+function detectAxisSoft(data, W, H, horizontal) {
+  const L = horizontal ? W : H, M = horizontal ? H : W, step = Math.max(1, Math.floor(M / 400));
+  const d = new Float64Array(L - 1); let sum = 0;
+  for (let i = 0; i < L - 1; i++) {
+    let e = 0;
+    for (let j = 0; j < M; j += step) {
+      const a = horizontal ? (j * W + i) * 4 : (i * W + j) * 4, b = horizontal ? a + 4 : a + W * 4;
+      e += Math.abs(0.299 * (data[b] - data[a]) + 0.587 * (data[b+1] - data[a+1]) + 0.114 * (data[b+2] - data[a+2]));
+    }
+    d[i] = e; sum += e;
+  }
+  const mean = sum / (L - 1) || 1, res = [];
+  for (let n = 64; n <= L / 1.5; n++) {
+    const s = L / n; let e = 0, c = 0;
+    for (let k = 1; k < n; k++) { const b = Math.round(k * s) - 1; if (b >= 0 && b < L - 1) { e += d[b]; c++; } }
+    res.push([n, c ? e / c / mean : 0]);
+  }
+  if (!res.length) return [L, 1];
+  const mx = Math.max(...res.map(x => x[1]));
+  let pick = L; for (const [n, v] of res) if (v >= 0.85 * mx) pick = n;
+  return [pick, mx];
+}
+// Common native resolutions, used when the picture is too blurry to read
+const SYSTEMS = [['NES · PC Engine', 256, 240, ''], ['NES (NTSC filter)', 602, 240, ''], ['SNES / SFC', 256, 224, 'sfc'],
+                 ['Mega Drive · Neo Geo · Saturn', 320, 224, ''], ['PS1 · N64', 320, 240, 'ps1'], ['PS1 (368 wide)', 368, 240, 'ps1'], ['PS1 (512 wide)', 512, 240, 'ps1'], ['CPS1/2', 384, 224, ''],
+                 ['PSP', 480, 272, 'psp'], ['PS2', 640, 448, 'ps2'], ['PS2 (480)', 640, 480, 'ps2']];
+function systemOf(w, h) { return SYSTEMS.find(x => x[1] === w && x[2] === h) || SYSTEMS.find(x => Math.abs(x[1] - w) <= 3 && Math.abs(x[2] - h) <= 3) || null; }
+function resample(c, nw, nh) {
+  const src = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  const o = document.createElement('canvas'); o.width = nw; o.height = nh;
+  const ctx = o.getContext('2d'), id = ctx.createImageData(nw, nh), d = id.data;
+  for (let y = 0; y < nh; y++) {
+    const sy = Math.min(c.height - 1, Math.floor((y + 0.5) * c.height / nh));
+    for (let x = 0; x < nw; x++) {
+      const sx = Math.min(c.width - 1, Math.floor((x + 0.5) * c.width / nw));
+      const a = (sy * c.width + sx) * 4, b = (y * nw + x) * 4;
+      d[b] = src[a]; d[b+1] = src[a+1]; d[b+2] = src[a+2]; d[b+3] = 255;
+    }
+  }
+  ctx.putImageData(id, 0, 0); return o;
+}
+function resampleSmooth(c, nw, nh) {   // area average: blurry / JPEG pictures shrink without picking up noise
+  let cur = c;
+  while (cur.width / 2 >= nw && cur.height / 2 >= nh) {
+    const h = document.createElement('canvas'); h.width = Math.round(cur.width / 2); h.height = Math.round(cur.height / 2);
+    const x = h.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(cur, 0, 0, h.width, h.height); cur = h;
+  }
+  const o = document.createElement('canvas'); o.width = nw; o.height = nh;
+  const x = o.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(cur, 0, 0, nw, nh);
+  return o;
+}
+function rotCanvas(c, dir) {
+  const o = document.createElement('canvas'); o.width = c.height; o.height = c.width;
+  const x = o.getContext('2d'); x.translate(o.width / 2, o.height / 2); x.rotate(dir * Math.PI / 2); x.drawImage(c, -c.width / 2, -c.height / 2);
+  return o;
+}
+let detected = {w:0, h:0};
+function cropBorders(c) {
+  const w = c.width, h = c.height, d = c.getContext('2d', {willReadFrequently:true}).getImageData(0, 0, w, h).data;
+  const dark = i => d[i] <= 10 && d[i+1] <= 10 && d[i+2] <= 10;
+  const colDark = x => { for (let y = 0; y < h; y += 2) if (!dark((y * w + x) * 4)) return false; return true; };
+  const rowDark = y => { for (let x = 0; x < w; x += 2) if (!dark((y * w + x) * 4)) return false; return true; };
+  let l = 0, rr = w - 1, t = 0, b = h - 1;
+  while (l < rr && colDark(l)) l++;
+  while (rr > l && colDark(rr)) rr--;
+  while (t < b && rowDark(t)) t++;
+  while (b > t && rowDark(b)) b--;
+  // only cut monitor side bars: the same width left and right, at least 3% each
+  const sideOK = (a, z, n) => a >= n * 0.03 && Math.abs(a - z) <= 2;
+  if (!sideOK(l, w - 1 - rr, w)) { l = 0; rr = w - 1; }
+  t = 0; b = h - 1;   // never cut top/bottom: many games have their own black rows there (monitor bars are on the sides)
+  const nw = rr - l + 1, nh = b - t + 1;
+  if ((nw === w && nh === h) || nw < w * 0.3 || nh < h * 0.3) return {c, cut:false};
+  const o = document.createElement('canvas'); o.width = nw; o.height = nh;
+  o.getContext('2d', {willReadFrequently:true}).drawImage(c, l, t, nw, nh, 0, 0, nw, nh);
+  return {c:o, cut:true, from:w + '×' + h};
+}
+function loadBlob(blob, asRef, name) {
+  const url = URL.createObjectURL(blob), im = new Image();
+  im.onload = () => {
+    URL.revokeObjectURL(url);
+    const k = cropBorders(imgToCanvas(im));
+    if (asRef) setRef(k.c, name); else { hideToast(); setInput(k.c, name); }
+    S.cutNote = k.cut ? k.from : ''; if (k.cut) updateInfo();
+  };
+  im.onerror = () => { URL.revokeObjectURL(url); alert(t('badImg', name)); };
+  im.src = url;
+}
+function loadImageFile(file, asRef) { return loadBlob(file, asRef, file.name); }
+function setInput(c, name, fromCrop) {
+  if (!fromCrop) { S.raw = c; S.cropNote = ''; }
+  if (S.modern) { S.vals.RASTER_LINES = S.base.RASTER_LINES ?? 0; S.vals.CONTENT_SCALE = S.base.CONTENT_SCALE ?? 0; syncPanel(); }
+  S.modern = null; S.padTo = null; S.isSample = false; S.cutNote = ''; S.img = c; S.capW = c.width; S.capH = c.height; S.name = name || '';
+  const d = c.getContext('2d', {willReadFrequently:true}).getImageData(0, 0, c.width, c.height).data;
+  let w = detectAxis(d, c.width, c.height, true), h = detectAxis(d, c.width, c.height, false);
+  S.soft = false; S.unclean = false; S.phase = null;
+  { const seen = new Set(); for (let i = 0; i < d.length && seen.size <= 6000; i += 4 * 7) seen.add((d[i] << 16) | (d[i+1] << 8) | d[i+2]); S.fewColors = seen.size <= 6000; }
+  {   // a partial capture: the grid may not start at the image edge, and a wrong small grid can fit by luck
+    const P = {px: 0, py: 0, sx: c.width / w, sy: c.height / h}; let hit = false;
+    const qx = detectAxisPhase(d, c.width, c.height, true), qy = detectAxisPhase(d, c.width, c.height, false);
+    if (qx && qx.s > (c.width / w) * 1.05 && Math.abs(qx.ph) > 0.5) { w = qx.n; P.px = qx.ph; P.sx = qx.s; hit = true; }
+    if (qy && qy.s > (c.height / h) * 1.05 && Math.abs(qy.ph) > 0.5) { h = qy.n; P.py = qy.ph; P.sy = qy.s; hit = true; }
+    if (hit && w < c.width && h < c.height) S.phase = P;
+  }
+  if (w === c.width && h === c.height && c.height >= 300) {
+    const sw = detectAxisSoft(d, c.width, c.height, true), sh = detectAxisSoft(d, c.width, c.height, false);
+    if (sw[1] >= 1.6 && sh[1] >= 1.6) { w = sw[0]; h = sh[0]; S.soft = true; }
+    else {   // blurry or already CRT-filtered: guess a 240-line picture with the image's shape
+      S.unclean = true; h = 240; w = Math.round(240 * c.width / c.height);
+    }
+  }
+  detected = {w, h};
+  S.natW = w; S.natH = h;
+  S.enlarged = (w < c.width || h < c.height) && !S.unclean;
+  // enlarged = a full-screen shader-off capture: the capture itself is RetroArch's game area
+  if (S.enlarged) { S.outW = c.width; S.outH = c.height; }
+  else { S.outH = SCREEN_H; S.outW = Math.round(SCREEN_H * (S.unclean ? c.width / c.height : 4 / 3)); }   // photos and modern games keep their own shape (16:9 etc.)
+  S.rot = S.enlarged && S.outH > S.outW * 1.05;
+  S.warnShaded = !S.enlarged && !S.unclean && [720, 1080, 1200, 1440, 1600, 2160].includes(c.height);
+  // a small enlarged picture is a web image, not a RetroArch fullscreen shot: draw it at 4K height with its shape
+  S.smallEnl = S.enlarged && c.height < 1000;
+  if (S.smallEnl) { S.outH = SCREEN_H; S.outW = Math.round(SCREEN_H * c.width / c.height); }
+  buildInputTex();
+  ['bRef','bSave','bPng'].forEach(id => $(id).disabled = false);
+  S.panX = 0.5; S.panY = 0.5;
+  changed(); updateInfo(); fillSystemSelect();
+  if (!S.loadingSample) presetForSystem(systemOf(S.rot ? h : w, S.rot ? w : h));
+  $('bCrop').disabled = !!S.loadingSample;
+  if (!S.loadingSample && !S.rot && (!S.unclean || S.capH >= 600) && !systemOf(w, h)) setTimeout(askSystem, 50);   // blurry or modern pictures only get the warning
+}
+function padCanvas(c, w, h) {   // a partial capture: put it in the middle of a full picture, the rest black
+  const o = document.createElement('canvas'); o.width = w; o.height = h;
+  const x = o.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+  x.drawImage(c, Math.floor((w - c.width) / 2), Math.floor((h - c.height) / 2)); return o;
+}
+const inW = () => S.padTo ? S.padTo.w : S.natW, inH = () => S.padTo ? S.padTo.h : S.natH;
+function buildInputTex() {
+  if (!S.img) return;
+  let nat = (S.natW === S.img.width && S.natH === S.img.height) ? S.img : (S.phase && S.natW === detected.w && S.natH === detected.h) ? resamplePhase(S.img, S.natW, S.natH, S.phase) : ((S.unclean || S.soft) && !S.fewColors) || S.modern ? resampleSmooth(S.img, S.natW, S.natH) : resample(S.img, S.natW, S.natH);
+  if (S.padTo) nat = padCanvas(nat, S.padTo.w, S.padTo.h);
+  S.natCanvas = nat;
+  freeTex(origDisp); origDisp = texFromCanvas(nat);
+  let inp = S.rot ? rotCanvas(nat, ROT_DIR) : nat;
+  freeTex(origTex); origTex = texFromCanvas(inp);
+  fbKey = '';
+}
+let ROT_DIR = 1;   // portrait capture -> landscape core picture (turned back the other way after the shader)
+function setRef(c, name) {
+  freeTex(refTex); refTex = texFromCanvas(c); S.refName = name; refPix = null; $('bFind').disabled = false;
+  if (c.width !== S.outW || c.height !== S.outH) {
+    if (confirm(t('refSize', c.width + '×' + c.height, S.outW + '×' + S.outH))) { S.outW = c.width; S.outH = c.height; S.dirty = true; }
+  }
+  $('segLeft').classList.remove('hid');
+  setLeft('ref'); updateInfo(); redraw();
+}
+
+// ---- what the shader will do with this picture (same formulas as common.inc)
+function shaderView() {
+  const v = S.vals, iw = S.rot ? inH() : inW(), ih = S.rot ? inW() : inH();
+  const oh = S.rot ? S.outW : S.outH, ow = S.rot ? S.outH : S.outW;
+  const Lf = Math.max(1, Math.floor(ih / 240 + 0.5));
+  const box = v.CONTENT_SCALE > 0.5 ? Math.floor(v.CONTENT_SCALE + 0.5) : (Lf % 2 < 0.5 ? Lf / 2 : Lf);
+  const rows = v.RASTER_LINES > 0.5 ? Math.max(1, (ih / box) / v.RASTER_LINES) : Lf / box;
+  const lines = ih / box / rows;
+  const T = v.MASK_PITCH < 0.5 ? Math.max(3, Math.floor(oh / 2160 * 6 * v.MASK_SIZE + 0.5)) : v.MASK_PITCH;
+  const gpx = ow / Math.max(iw / box, 1);
+  return {iw, ih, box, rows, lines, T, gpx, linePx: oh / lines};
+}
+function updateInfo() {
+  if (!S.img) return;
+  const s = shaderView();
+  const f = n => (Math.abs(n - Math.round(n)) < 0.005 ? Math.round(n) : n.toFixed(2));
+  const parts = [];
+  parts.push(`<span>${t('iGame', inW() + '×' + inH())}${S.padTo ? t('iPad', S.natW + '×' + S.natH) : ''}${S.enlarged ? t('iFound', S.capW + '×' + S.capH) : ''}${S.smallEnl ? t('iSmall') : ''}</span>`);
+  parts.push(`<span>${t('iOut', S.outW + '×' + S.outH)}${S.rot ? t('iVert') : ''}</span>`);
+  parts.push(`<span>${t('iLines', f(s.lines), f(s.linePx))}</span>`);
+  parts.push(`<span>${t('iBox', f(s.box))}</span>`);
+  parts.push(`<span>${t('iTri', f(s.T), f(s.gpx), f(s.gpx / s.T))}</span>`);
+  if (Math.abs(s.lines - Math.round(s.lines)) > 0.01) parts.push(`<span class="warn">${t('wLines')}</span>`);
+  if (!S.enlarged && !S.warnShaded && !S.unclean && !S.isSample) parts.push(`<span>${t('iNative')}</span>`);
+  if (S.isSample) parts.push(`<span>${t('iSample')}</span>`);
+  if (S.cutNote) parts.push(`<span>${t('iCut', S.cutNote)}</span>`);
+  if (S.cropNote) parts.push(`<span>${t('iCrop', S.cropNote)}</span>`);
+  if (S.modern) parts.push(`<span>${t('iModern', S.modern)}</span>`);
+  if (S.warnShaded) parts.push(`<span class="warn">${t('wShaded')}</span>`);
+  if (S.soft) parts.push(`<span class="warn">${t('wSoft')}</span>`);
+  if (S.unclean) parts.push(`<span class="warn">${t('wUnclean')}</span>`);
+  $('info').innerHTML = parts.join('');
+}
+
+// ================= parameter panel =================
+const KEYS = ['BRIGHT', 'GLOW', 'BEAM_DARK', 'BEAM_BRIGHT', 'MASK_PITCH', 'CONVERGE', 'LUMA_BLUR', 'SATURATION'];
+let SIMPLE = (() => { try { return localStorage.getItem('rcp-simple') !== '0'; } catch (e) { return true; } })();
+function buildPanel() {
+  const side = $('side'); side.innerHTML = '';
+  const bar = document.createElement('div'); bar.className = 'sidebar';
+  bar.innerHTML = `<div class="seg"><button data-s="1">${t('simple')}</button><button data-s="0">${t('full')}</button></div>
+    <span class="sp"></span>
+    <button class="ib" id="bUndo" title="${t('undo')} (Ctrl+Z)" aria-label="${t('undo')}">↶</button>
+    <button class="ib" id="bRedo" title="${t('redo')} (Ctrl+Shift+Z)" aria-label="${t('redo')}">↷</button>
+    <button class="ib" id="bReset" title="${t('resetAllTip')}">${t('resetAll')}</button>`;
+  side.appendChild(bar);
+  bar.querySelectorAll('[data-s]').forEach(b => b.onclick = () => setSimple(b.dataset.s === '1'));
+  bar.querySelector('#bUndo').onclick = undo; bar.querySelector('#bRedo').onclick = redo;
+  bar.querySelector('#bReset').onclick = () => { pushHist(); applyPreset(S.presetKey); };
+  let grp = null, body = null;
+  for (const p of PARAMS) {
+    if (p.name === 'GK_TITLE' || p.name === 'GK_INFO' || p.name.startsWith('GK_SP')) continue;
+    if (isHeader(p)) {
+      grp = document.createElement('details'); grp.className = 'grp'; grp.open = /INPUT|SCANLINES|GLOW|RGB/.test(p.label);
+      const sm = document.createElement('summary');
+      sm.innerHTML = `<span>${p.label.replace(/[\[\]]/g, '').replace(/\s*\(.*\)/, '').trim()}</span><span class="n"></span>`;
+      grp.appendChild(sm); side.appendChild(grp); body = grp; continue;
+    }
+    const row = document.createElement('div'); row.className = 'prm' + (KEYS.includes(p.name) ? ' key' : ''); row.dataset.n = p.name;
+    const dec = p.st < 1 ? (String(p.st).split('.')[1] || '').length : 0;
+    row.innerHTML = `<div class="top"><label for="r_${p.name}">${p.label.trim()}</label>
+      <button class="rs" title="${t('reset')}" aria-label="${t('reset')}">↺</button>
+      <input type="number" step="${p.st}" min="${p.lo}" max="${p.hi}" aria-label="${p.label.trim()}"></div>
+      <span class="ko">${desc(p.name)}</span>
+      <input type="range" id="r_${p.name}" min="${p.lo}" max="${p.hi}" step="${p.st}">`;
+    const rng = row.querySelector('input[type=range]'), num = row.querySelector('input[type=number]');
+    const set = (v, from) => {
+      v = Math.min(p.hi, Math.max(p.lo, +v)); if (isNaN(v)) return;
+      S.vals[p.name] = +v.toFixed(Math.max(dec, 2));
+      if (from !== 'r') rng.value = v; if (from !== 'n') num.value = v.toFixed(dec);
+      markRow(row, p); changed(); updateInfo();
+    };
+    // one undo step per drag: remember the state when a drag starts, not on every tiny move
+    rng.addEventListener('input', () => { if (!row._held) { pushHist(); row._held = true; } hideToast(); set(rng.value, 'r'); });
+    rng.addEventListener('change', () => { row._held = false; });
+    num.addEventListener('change', () => { pushHist(); hideToast(); set(num.value, 'n'); });
+    row.querySelector('.rs').addEventListener('click', () => { pushHist(); set(S.base[p.name] ?? p.d); });
+    row._sync = () => { const v = S.vals[p.name] ?? p.d; rng.value = v; num.value = (+v).toFixed(dec); markRow(row, p); };
+    (body || side).appendChild(row);
+  }
+  const more = document.createElement('div'); more.className = 'more'; more.textContent = t('simpleMore', PARAMS.filter(q => !isHeader(q) && !KEYS.includes(q.name) && !q.name.startsWith('GK_')).length);
+  side.appendChild(more);
+  setSimple(SIMPLE, true); updHist();
+}
+function setSimple(on, quiet) {
+  SIMPLE = on; if (!quiet) { try { localStorage.setItem('rcp-simple', on ? '1' : '0'); } catch (e) {} }
+  const side = $('side');
+  side.classList.toggle('simple', on);
+  side.querySelectorAll('.grp').forEach(g => { if (on) { if (g._was === undefined) g._was = g.open; g.open = true; } else if (g._was !== undefined) { g.open = g._was; g._was = undefined; } });
+  side.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', (b.dataset.s === '1') === on));
+}
+// ---- undo / redo: snapshots of the preset and every value
+const HIST = {u: [], r: []};
+const snap = () => ({key: S.presetKey, base: Object.assign({}, S.base), vals: Object.assign({}, S.vals)});
+function pushHist() { HIST.u.push(snap()); if (HIST.u.length > 200) HIST.u.shift(); HIST.r.length = 0; updHist(); }
+function restoreSnap(x) { S.presetKey = x.key; S.base = Object.assign({}, x.base); S.vals = Object.assign({}, x.vals); $('selPreset').value = x.key; syncPanel(); changed(); }
+function undo() { if (!HIST.u.length) return; HIST.r.push(snap()); restoreSnap(HIST.u.pop()); updHist(); }
+function redo() { if (!HIST.r.length) return; HIST.u.push(snap()); restoreSnap(HIST.r.pop()); updHist(); }
+function updHist() { const u = $('bUndo'), rd = $('bRedo'); if (u) u.disabled = !HIST.u.length; if (rd) rd.disabled = !HIST.r.length; }
+document.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  const tg = e.target; if (tg && (tg.type === 'number' || tg.type === 'text' || tg.tagName === 'TEXTAREA')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
+});
+function markRow(row, p) {
+  const b = S.base[p.name] ?? p.d, v = S.vals[p.name] ?? p.d;
+  row.classList.toggle('chg', Math.abs(b - v) > 1e-6);
+  document.querySelectorAll('.grp').forEach(g => {
+    const n = g.querySelectorAll('.prm.chg').length; g.querySelector('.n').textContent = n ? t('nChanged', n) : '';
+  });
+}
+function syncPanel() { document.querySelectorAll('.prm').forEach(r => r._sync && r._sync()); updateInfo(); }
+function applyPreset(key, extra) {
+  S.presetKey = key;
+  S.base = Object.assign({}, defaults, PRESETS[key].vals);
+  S.vals = Object.assign({}, S.base, extra || {});
+  $('selPreset').value = key; syncPanel(); changed();
+}
+function fillPresetSelect() {
+  const sel = $('selPreset'); sel.innerHTML = '';
+  const groups = {'': t('gDefault'), '4K': '4K', 'Ally': 'Ally (1080p)'};
+  for (const [folder, label] of Object.entries(groups)) {
+    const og = document.createElement('optgroup'); og.label = label;
+    for (const [k, p] of Object.entries(PRESETS)) if (p.folder === folder) {
+      const o = document.createElement('option'); o.value = k; o.textContent = k.replace('.slangp', ''); og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  sel.addEventListener('change', () => {
+    const n = Object.keys(S.vals).filter(k => Math.abs((S.vals[k] ?? 0) - (S.base[k] ?? 0)) > 1e-6).length;
+    if (n && !confirm(t('presetSwitch', n, sel.value))) { sel.value = S.presetKey; return; }
+    pushHist();
+    applyPreset(sel.value);
+  });
+}
+
+// ================= .slangp import / export =================
+function parseSlangp(txt) {
+  const vals = {};
+  for (const m of txt.matchAll(/^\s*(\w+)\s*=\s*"?([-\d.]+)"?\s*$/gm)) if (m[1] in defaults) vals[m[1]] = +m[2];
+  const ref = (txt.match(/#reference\s+"([^"]+)"/) || [])[1];
+  return {vals, ref: ref ? ref.split(/[\\/]/).pop() : null};
+}
+// Where the file will be dropped decides the path to the shader:
+//  shaders : RetroArch/shaders/            -> points straight at the shader, every value written out
+//  slang   : RetroArch/shaders/shaders_slang/ -> same, one folder shorter
+//  preset  : next to the chosen preset (presets/4K or presets/Ally) -> only the values changed from that preset
+const WHERE_REF = {shaders: 'shaders_slang/real-crt-phosphor/real-crt-phosphor.slangp', slang: 'real-crt-phosphor/real-crt-phosphor.slangp'};
+function exportText(where) {
+  where = where || 'preset';
+  const p = PRESETS[S.presetKey];
+  const vs = q => S.vals[q.name] ?? q.d;
+  const head = `# Made with Real CRT Phosphor Preview ${VER}.\n`;
+  if (where !== 'preset') {   // self-contained: everything that differs from the shader's own defaults
+    const all = PARAMS.filter(q => !isHeader(q) && Math.abs(vs(q) - q.d) > 1e-6);
+    let t = `#reference "${WHERE_REF[where]}"\n${head}# Started from ${S.presetKey}. Put this file in RetroArch's ${where === 'shaders' ? 'shaders' : 'shaders/shaders_slang'} folder.\n`;
+    for (const q of all) t += `${q.name} = "${(+vs(q)).toFixed(6)}"\n`;
+    const changed = PARAMS.filter(q => !isHeader(q) && Math.abs(vs(q) - (S.base[q.name] ?? q.d)) > 1e-6).length;
+    return {t, n: changed, folder: p.folder, where};
+  }
+  const diff = PARAMS.filter(q => !isHeader(q) && Math.abs(vs(q) - (S.base[q.name] ?? q.d)) > 1e-6);
+  const ref = S.presetKey === 'real-crt-phosphor.slangp' ? '../../real-crt-phosphor.slangp' : S.presetKey;
+  let t = `#reference "${ref}"\n${head}# Based on ${S.presetKey}, only the changed values.\n`;
+  for (const q of diff) t += `${q.name} = "${(+vs(q)).toFixed(6)}"\n`;
+  return {t, n: diff.length, folder: p.folder, where};
+}
+const saveWhere = () => (document.querySelector('input[name=where]:checked') || {}).value || 'shaders';
+function download(name, blob) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+// ================= PNG export (full size, same as RetroArch screen area) =================
+function resultCanvas() {
+  if (S.dirty) { runPipeline(); S.dirty = false; }
+  const t = resultTex; const px = new Uint8Array(t.w * t.h * 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbs[11].fb); gl.readPixels(0, 0, t.w, t.h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  const c = document.createElement('canvas'); c.width = t.w; c.height = t.h;
+  const id = new ImageData(new Uint8ClampedArray(px.buffer), t.w, t.h);
+  c.getContext('2d').putImageData(id, 0, 0);
+  return S.rot ? rotCanvas(c, -ROT_DIR) : c;
+}
+
+// ================= which preset made the RetroArch shot? =================
+let refPix = null;
+function refPixels() {
+  if (refPix) return refPix;
+  const t = refTex, px = new Uint8Array(t.w * t.h * 4), fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t.t, 0);
+  gl.readPixels(0, 0, t.w, t.h, gl.RGBA, gl.UNSIGNED_BYTE, px); gl.deleteFramebuffer(fb);
+  return refPix = px;
+}
+function scoreAgainstRef() {   // mean difference (0-255) between our result and the RetroArch shot, every 3rd pixel
+  const c = resultCanvas(), r = refPixels();
+  if (c.width !== refTex.w || c.height !== refTex.h) return Infinity;
+  const a = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  let s = 0, n = 0;
+  for (let i = 0; i < a.length; i += 12) { s += Math.abs(a[i] - r[i]) + Math.abs(a[i+1] - r[i+1]) + Math.abs(a[i+2] - r[i+2]); n += 3; }
+  return s / n;
+}
+// RGB triad pitch of the RetroArch shot, measured from how the red-minus-blue light repeats across the screen
+function measurePitch() {
+  // vertical games are rotated after the shader, so their stripes run along the screen's height
+  const r = refPixels(), W = refTex.w, H = refTex.h, L = S.rot ? H : W, prof = new Float64Array(L);
+  if (!S.rot) { for (let y = Math.floor(H * 0.2); y < H * 0.8; y += 3) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; prof[x] += r[i] - r[i+2]; } }
+  else { for (let x = Math.floor(W * 0.2); x < W * 0.8; x += 3) for (let y = 0; y < H; y++) { const i = (y * W + x) * 4; prof[y] += r[i] - r[i+2]; } }
+  const W2 = L; let m = 0; for (let x = 0; x < W2; x++) m += prof[x]; m /= W2;
+  let best = 0, bestP = 0;
+  for (let P = 2.5; P <= 12; P += 0.02) {
+    let c = 0, q = 0; const w = 2 * Math.PI / P;
+    for (let x = 0; x < W2; x++) { const v = prof[x] - m; c += v * Math.cos(w * x); q += v * Math.sin(w * x); }
+    const e = c * c + q * q; if (e > best) { best = e; bestP = P; }
+  }
+  return Math.round(bestP * 2) / 2;            // the menu steps in 0.5
+}
+const pitchOf = v => v.MASK_PITCH < 0.5 ? Math.max(3, Math.floor((S.rot ? S.outW : S.outH) / 2160 * 6 * v.MASK_SIZE + 0.5)) : v.MASK_PITCH;
+async function findPreset() {
+  if (!refTex || !origTex) return;
+  const keep = {key: S.presetKey, vals: Object.assign({}, S.vals), base: Object.assign({}, S.base)};
+  const btn0 = $('bFind'), btn = {set textContent(v) { btn0.textContent = v; $('bTools').firstElementChild.textContent = v === t('find') ? t('tools') : v; }, set disabled(v) { btn0.disabled = v; }};
+  btn.disabled = true; closeTools();
+  const P = measurePitch(), keys = Object.keys(PRESETS), res = [];
+  const tryVals = (k, extra) => { S.base = Object.assign({}, defaults, PRESETS[k].vals); S.vals = Object.assign({}, S.base, extra); S.dirty = true; return scoreAgainstRef(); };
+  for (const k of keys) {
+    btn.textContent = t('finding', res.length + 1, keys.length);
+    await new Promise(r => setTimeout(r, 0));
+    res.push([k, tryVals(k, {}), {}]);
+  }
+  res.sort((a, b) => a[1] - b[1]);
+  // the measured pitch is tried on every preset whose own pitch differs, and kept only where it really helps
+  for (const row of res) {
+    const own = Object.assign({}, defaults, PRESETS[row[0]].vals);
+    if (Math.abs(pitchOf(own) - P) <= 0.25) continue;
+    btn.textContent = t('finding2', P); await new Promise(r => setTimeout(r, 0));
+    const v = tryVals(row[0], {MASK_PITCH: P});
+    if (v < row[1] - 0.05) { row[1] = v; row[2] = {MASK_PITCH: P}; }
+  }
+  res.sort((a, b) => a[1] - b[1]);
+  // then fine-tune the convergence on the winner
+  let [best, sc, extra] = res[0];
+  for (const cv of [0, 0.2, 0.4, 0.6, 0.8]) {
+    await new Promise(r => setTimeout(r, 0));
+    const e2 = Object.assign({}, extra, {CONVERGE: cv}), v = tryVals(best, e2);
+    if (v < sc - 0.02) { sc = v; extra = e2; }
+  }
+  const baseVals = Object.assign({}, defaults, PRESETS[best].vals);
+  for (const k of Object.keys(extra)) if (Math.abs(extra[k] - baseVals[k]) < 1e-6) delete extra[k];
+  btn.textContent = t('find'); btn.disabled = false;
+  const lines = res.slice(0, 3).map(([k, v]) => `${k.replace('.slangp', '')}  —  ${t('diffAvg', v.toFixed(2))}`).join('\n');
+  const tweaks = Object.keys(extra).length ? '\n' + t('fTweak', Object.entries(extra).map(([k, v]) => `${k} ${v}`).join(', '), sc.toFixed(2)) : '';
+  const verdict = sc < 0.6 ? t('fSame') : sc < 3 ? t('fClose') : t('fNone');
+  if (confirm(t('fAsk', lines + tweaks, verdict, best.replace('.slangp', '') + (tweaks ? ' + ' + Object.keys(extra).join(', ') : '')))) { S.presetKey = keep.key; S.base = keep.base; S.vals = keep.vals; pushHist(); applyPreset(best, extra); }
+  else { S.presetKey = keep.key; S.base = keep.base; S.vals = keep.vals; $('selPreset').value = keep.key; syncPanel(); changed(); }
+}
+$('bFind').onclick = findPreset;
+
+// ================= UI wiring =================
+$('bOpen').onclick = $('bOpen2').onclick = () => $('fImg').click();
+function loadSample() {
+  const im = new Image();
+  im.onload = () => { S.loadingSample = true; setInput(imgToCanvas(im), 'sample_320x240.png'); S.loadingSample = false; S.isSample = true; applyPreset(SHARED ? SHARED.key : BASE_KEY, SHARED ? SHARED.vals : undefined); fillSystemSelect(); S.panX = 0.2; S.panY = 0.5; updateInfo(); $('toast').classList.remove('hid');
+    setTimeout(changed, 60); };   // draw once more: the very first pipeline run can come back empty on some drivers
+  im.src = SAMPLE;
+}
+function hideToast() { $('toast').classList.add('hid'); }
+$('bToastX').onclick = $('bToastOk').onclick = hideToast;
+$('bRef').onclick = () => $('fRef').click();
+$('fImg').onchange = e => { if (e.target.files[0]) loadImageFile(e.target.files[0], false); e.target.value = ''; };
+$('fRef').onchange = e => { if (e.target.files[0]) loadImageFile(e.target.files[0], true); e.target.value = ''; };
+$('bImport').onclick = () => $('fPreset').click();
+$('fPreset').onchange = e => {
+  const f = e.target.files[0]; if (!f) return; e.target.value = '';
+  f.text().then(txt => {
+    const r = parseSlangp(txt);
+    let base = r.ref && PRESETS[r.ref] ? r.ref : (r.ref ? null : 'real-crt-phosphor.slangp');
+    if (!base) { alert(t('importMiss', r.ref)); base = S.presetKey; }
+    pushHist(); applyPreset(base, r.vals);
+  });
+};
+function fillSave() {
+  const w = saveWhere(), e = exportText(w), p = PRESETS[S.presetKey];
+  const folder = w === 'shaders' ? 'RetroArch/shaders' : w === 'slang' ? 'RetroArch/shaders/shaders_slang'
+               : 'RetroArch/shaders/shaders_slang/real-crt-phosphor/' + (p.folder ? p.path.replace(/[^/]+$/, '') : 'presets/4K/');
+  $('saveHow').innerHTML = (e.n === 0 ? t('saveNone') + ' ' : '') + t(w === 'preset' ? 'saveHow' : 'saveHowAll', e.n, folder);
+  const stem = (S.name ? S.name.replace(/\.[^.]+$/, '').replace(/[^\w가-힣\-]+/g, '-').slice(0, 40) + '_' : 'my_');
+  $('saveName').value = stem + (w === 'preset' ? S.presetKey : 'real-crt-phosphor.slangp');
+  $('savePrev').textContent = e.t;
+}
+document.querySelectorAll('input[name=where]').forEach(i => i.addEventListener('change', fillSave));
+$('bSave').onclick = () => { fillSave(); $('dlgSave').showModal(); };
+$('bSaveCancel').onclick = () => $('dlgSave').close();
+$('bSaveGo').onclick = () => {
+  let n = $('saveName').value.trim() || 'my-preset.slangp'; if (!n.endsWith('.slangp')) n += '.slangp';
+  download(n, new Blob([exportText(saveWhere()).t], {type:'text/plain'})); $('dlgSave').close();
+};
+// ---- image saving: the whole result, an original|result comparison of what is on screen, or the view itself
+const stem = () => (S.name || 'result').replace(/\.[^.]+$/, '');
+$('bPng').onclick = e => { e.stopPropagation(); const p = $('savePop'); p.classList.toggle('hid'); $('bPng').setAttribute('aria-expanded', String(!p.classList.contains('hid'))); };
+$('savePop').addEventListener('click', e => { if (e.target.closest('button')) { $('savePop').classList.add('hid'); $('bPng').setAttribute('aria-expanded', 'false'); } });
+document.addEventListener('click', e => { if (!e.target.closest('#mSave')) $('savePop').classList.add('hid'); });
+$('bPngFull').onclick = () => resultCanvas().toBlob(b => download(stem() + '_preview.png', b), 'image/png');
+function viewRegion() {        // the part of the RetroArch screen the viewer shows right now (one pane)
+  const W = canvas.width, H = canvas.height, pw = S.mode === 'split' ? Math.floor(W / 2) - 1 : W;
+  const z = zoomValue(pw, H), vw = pw / z, vh = H / z;
+  const ox = vw >= S.outW ? 0 : Math.max(0, Math.min(S.outW - vw, S.panX * S.outW - vw / 2));
+  const oy = vh >= S.outH ? 0 : Math.max(0, Math.min(S.outH - vh, S.panY * S.outH - vh / 2));
+  const x0 = Math.round(ox), y0 = Math.round(oy);
+  return {x: x0, y: y0, w: Math.min(S.outW - x0, Math.round(Math.min(vw, S.outW))), h: Math.min(S.outH - y0, Math.round(Math.min(vh, S.outH)))};
+}
+function originalAtScreen() {  // the game picture enlarged with plain pixels to the RetroArch screen size
+  const c = document.createElement('canvas'); c.width = S.outW; c.height = S.outH;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(S.natCanvas, 0, 0, S.outW, S.outH); return c;
+}
+$('bPngCmp').onclick = () => {
+  const R = viewRegion(), res = resultCanvas(), left = S.left === 'ref' && S.refName ? null : originalAtScreen();
+  const pad = 20, gap = 12, lab = 46, foot = 34, W = pad * 2 + R.w * 2 + gap, H = pad + R.h + lab + foot;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'); x.fillStyle = '#18181b'; x.fillRect(0, 0, W, H); x.imageSmoothingEnabled = false;
+  if (left) x.drawImage(left, R.x, R.y, R.w, R.h, pad, pad, R.w, R.h);
+  else { const rc = document.createElement('canvas'); rc.width = refTex.w; rc.height = refTex.h; const px = refPixels(); rc.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(px.buffer.slice(0)), refTex.w, refTex.h), 0, 0); x.drawImage(rc, R.x, R.y, R.w, R.h, pad, pad, R.w, R.h); }
+  x.drawImage(res, R.x, R.y, R.w, R.h, pad + R.w + gap, pad, R.w, R.h);
+  const font = (wt, px) => `${wt} ${px}px "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif`;
+  const ly = pad + R.h + 8;
+  x.fillStyle = '#9b9993'; x.fillRect(pad, ly, R.w, 3); x.fillStyle = '#f2c14e'; x.fillRect(pad + R.w + gap, ly, R.w, 3);
+  x.fillStyle = '#e7e5e0'; x.font = font(650, 18); x.textBaseline = 'top';
+  x.fillText(left ? t('capOrig') : t('capRef'), pad, ly + 12);
+  const nChg = PARAMS.filter(q => !isHeader(q) && Math.abs((S.vals[q.name] ?? q.d) - (S.base[q.name] ?? q.d)) > 1e-6).length;
+  x.fillText('Real CRT Phosphor · ' + S.presetKey.replace('.slangp', '') + (nChg ? ' ' + t('cmpEdited', nChg) : ''), pad + R.w + gap, ly + 12);
+  x.fillStyle = '#9b9993'; x.font = font(400, 13);
+  x.fillText(t('cmpFoot', inW() + '×' + inH(), S.outW + '×' + S.outH, VER), pad, H - foot + 8);
+  c.toBlob(b => download(stem() + '_compare.png', b), 'image/png');
+};
+$('bPngView').onclick = () => {
+  draw();                     // the canvas keeps its pixels (preserveDrawingBuffer), so this is exactly what is on screen
+  const c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height;
+  const x = c.getContext('2d'); x.drawImage(canvas, 0, 0);
+  if (S.mode === 'wipe') { x.fillStyle = '#f2c14e'; x.fillRect(Math.round(c.width * S.wipe) - 1, 0, 2, c.height); }
+  c.toBlob(b => download(stem() + '_view.png', b), 'image/png');
+};
+
+$('bFull').onclick = () => {
+  const st = $('stage');
+  if (document.fullscreenElement) { document.exitFullscreen(); return; }
+  if (!st.requestFullscreen) { alert(t('fullNo')); return; }
+  S.zoomBefore = S.zoom; S.zoom = '1'; segOn('segZoom', document.querySelector('#segZoom [data-z="1"]'));
+  hideToast(); st.requestFullscreen().catch(() => alert(t('fullNo')));
+};
+document.addEventListener('fullscreenchange', () => {
+  const on = !!document.fullscreenElement;
+  $('fsHint').classList.toggle('hid', !on);
+  if (on) { clearTimeout(S.fsT); $('fsHint').classList.remove('fade'); S.fsT = setTimeout(() => $('fsHint').classList.add('fade'), 2500); }
+  else if (S.zoomBefore) { S.zoom = S.zoomBefore; S.zoomBefore = null; segOn('segZoom', document.querySelector(`#segZoom [data-z="${S.zoom}"]`)); }
+  redraw();
+});
+$('segZoom').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.zoom = b.dataset.z; segOn('segZoom', b); redraw(); };
+$('segMode').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.mode = b.dataset.m; segOn('segMode', b); redraw(); };
+$('segLeft').onclick = e => { const b = e.target.closest('button'); if (!b || b.disabled) return; setLeft(b.dataset.l); };
+function setLeft(l) { S.left = l; segOn('segLeft', document.querySelector(`#segLeft [data-l=${l}]`)); $('capL').textContent = leftName(); redraw(); }
+function segOn(id, b) { document.querySelectorAll('#' + id + ' button').forEach(x => x.classList.toggle('on', x === b)); }
+
+// pan by dragging; in "hold" mode, pressing shows the left picture
+const stage = $('stage'); let drag = null;
+stage.addEventListener('pointerdown', e => {
+  if (!origTex || e.target.closest('#crop, #toast')) return;   // buttons on top of the picture keep their clicks
+  if (S.mode === 'wipe') {
+    const rc = stage.getBoundingClientRect(), bx = rc.left + rc.width * S.wipe;
+    if (Math.abs(e.clientX - bx) < 22) {
+      stage.setPointerCapture(e.pointerId); stage.classList.add('wiping');
+      const mv = ev => { S.wipe = Math.min(1, Math.max(0, (ev.clientX - rc.left) / rc.width)); redraw(); };
+      const up = () => { stage.classList.remove('wiping'); stage.removeEventListener('pointermove', mv); stage.removeEventListener('pointerup', up); stage.removeEventListener('pointercancel', up); };
+      stage.addEventListener('pointermove', mv); stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+      e.stopImmediatePropagation(); return;
+    }
+  }
+  stage.setPointerCapture(e.pointerId); stage.classList.add('drag');
+  drag = {x:e.clientX, y:e.clientY, px:S.panX, py:S.panY, moved:false};
+  if (S.mode === 'hold') { S.hold = true; redraw(); }
+});
+stage.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const r = canvas.getBoundingClientRect(), d = dpr();
+  if (stage.classList.contains('wiping')) return;
+  const paneW = S.mode === 'split' ? canvas.width / 2 : canvas.width;
+  const z = zoomValue(paneW, canvas.height);
+  S.panX = drag.px - (e.clientX - drag.x) * d / z / S.outW;
+  S.panY = drag.py - (e.clientY - drag.y) * d / z / S.outH;
+  S.panX = Math.min(1, Math.max(0, S.panX)); S.panY = Math.min(1, Math.max(0, S.panY));
+  redraw();
+});
+const endDrag = () => { drag = null; stage.classList.remove('drag'); if (S.hold) { S.hold = false; redraw(); } };
+stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+stage.addEventListener('wheel', e => {
+  if (!origTex) return; e.preventDefault();
+  const order = ['1','2','4','8']; let i = order.indexOf(String(S.zoom));
+  i = Math.max(0, Math.min(order.length - 1, i + (e.deltaY < 0 ? 1 : -1)));
+  S.zoom = order[i]; segOn('segZoom', document.querySelector(`#segZoom [data-z="${order[i]}"]`)); redraw();
+}, {passive:false});
+['dragenter','dragover'].forEach(t => stage.addEventListener(t, e => { e.preventDefault(); stage.classList.add('over'); }));
+['dragleave','drop'].forEach(t => stage.addEventListener(t, e => { e.preventDefault(); stage.classList.remove('over'); }));
+stage.addEventListener('drop', e => {
+  const fs = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (!fs.length) return;
+  if (!S.img || S.isSample || fs.length > 1) {
+    loadImageFile(fs[0], false);
+    if (fs[1]) setTimeout(() => loadImageFile(fs[1], true), 300);
+  } else if (confirm(t('dropAsk'))) loadImageFile(fs[0], false);
+  else loadImageFile(fs[0], true);
+});
+
+// Ctrl+V: a PrintScreen capture goes straight in
+document.addEventListener('paste', e => {
+  if (e.target.closest && e.target.closest('input, textarea')) return;
+  const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (!it) return;
+  e.preventDefault();
+  const f = it.getAsFile(), name = 'clipboard.png';
+  if (!S.img || S.isSample) loadBlob(f, false, name);
+  else if (confirm(t('pasteAsk'))) loadBlob(f, false, name);
+  else loadBlob(f, true, name);
+});
+// system picker in the toolbar: shows what was detected, or lets the user set it
+function fillSystemSelect() {
+  const sel = $('selSystem'); sel.innerHTML = '';
+  const vert = S.rot;                                         // vertical games keep the detected size
+  const det = S.isSample || S.loadingSample ? [t('sysSample')] : vert ? [t('sysVert')] : systemOf(detected.w, detected.h);
+  const a = document.createElement('option'); a.value = 'auto';
+  a.textContent = S.img ? t('sysAuto', det ? det[0] : (S.isSample ? t('sysSample') : t('sysUnknown')), detected.w + '×' + detected.h) : t('sysNone');
+  sel.appendChild(a);
+  const og1 = document.createElement('optgroup'); og1.label = t('grpRetro'); sel.appendChild(og1);
+  SYSTEMS.forEach(([n, w, h], i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = `${n} — ${w}×${h}`; og1.appendChild(o); });
+  const og2 = document.createElement('optgroup'); og2.label = t('grpModern'); sel.appendChild(og2);
+  MODERN.forEach(n => { const o = document.createElement('option'); o.value = 'm' + n; o.textContent = t('modern' + n); og2.appendChild(o); });
+  if (S.modern) { sel.value = 'm' + S.modern; sel.disabled = !S.img; return; }
+  const cur = S.padTo ? systemOf(S.padTo.w, S.padTo.h) : (S.natW === detected.w && S.natH === detected.h) ? null : systemOf(vert ? S.natH : S.natW, vert ? S.natW : S.natH);
+  sel.value = cur ? String(SYSTEMS.indexOf(cur)) : 'auto';
+  sel.disabled = !S.img;
+}
+// switch to the system's own preset when one exists, unless the user has already changed values
+function presetForSystem(sys) {
+  // systems without their own preset (and vertical arcade games) go back to the shared base
+  const pre = S.presetKey.startsWith('ally-') ? 'ally-' : '4k-';
+  const own = sys && sys[3] && !S.rot ? sys[3] : null;
+  const key = own ? pre + own + (S.presetKey.includes('-slot') ? '-slot' : '') + '.slangp' : pre + 'base.slangp';
+  const changedN = Object.keys(S.vals).filter(k => Math.abs((S.vals[k] ?? 0) - (S.base[k] ?? 0)) > 1e-6).length;
+  if (PRESETS[key] && !changedN && key !== S.presetKey) applyPreset(key);
+}
+// Choosing a system: a clean picture that is SMALLER than the system's screen is a partial capture
+// (kept at its own pixels and padded with black); otherwise the picture is fitted to the system's resolution.
+// Modern games and photos: shrink the picture to this many lines (keeping its shape) and draw that many scanlines.
+// 240 = an ordinary old TV, 480 = a broadcast/PVM monitor, 540 and 720 = sharper high-resolution CRT monitors.
+const MODERN = [240, 480, 540, 720];
+function applyModern(lines) {
+  S.modern = lines; S.padTo = null; S.rot = false;
+  S.natH = lines; S.natW = Math.round(lines * S.capW / S.capH);
+  S.outH = SCREEN_H; S.outW = Math.round(SCREEN_H * S.capW / S.capH);
+  S.vals.RASTER_LINES = lines > 240 ? lines : 0;          // tell the shader these are real lines, not 240 doubled
+  S.vals.CONTENT_SCALE = lines > 240 ? 1 : 0;              // and not an upscale to average back down (720 would look like PS1 x3)
+  buildInputTex(); syncPanel(); changed(); updateInfo(); fillSystemSelect();
+}
+function applySystem(idx) {
+  if (String(idx).startsWith('m')) return applyModern(+String(idx).slice(1));
+  if (S.modern) { S.modern = null; S.vals.RASTER_LINES = S.base.RASTER_LINES ?? 0; S.vals.CONTENT_SCALE = S.base.CONTENT_SCALE ?? 0; syncPanel(); if (S.unclean || !S.enlarged || S.smallEnl) { S.outH = SCREEN_H; S.outW = Math.round(SCREEN_H * (S.unclean || S.smallEnl ? S.capW / S.capH : 4 / 3)); } else { S.outW = S.capW; S.outH = S.capH; } }
+  let sys = null; S.padTo = null;
+  if (idx === 'auto') { S.natW = detected.w; S.natH = detected.h; sys = S.rot ? null : systemOf(detected.w, detected.h); }
+  else {
+    sys = SYSTEMS[+idx];
+    const sw = S.rot ? sys[2] : sys[1], sh = S.rot ? sys[1] : sys[2];
+    if (!S.unclean && !S.rot && detected.w <= sw && detected.h <= sh) {
+      S.natW = detected.w; S.natH = detected.h;
+      if (detected.w < sw || detected.h < sh) {
+        S.padTo = {w: sw, h: sh};
+        let sc = S.enlarged ? (S.phase && S.phase.py ? S.phase.sy : S.capH / detected.h) : 0;
+        if (Math.abs(sc - Math.round(sc)) < 0.1) sc = Math.round(sc);   // a partial edge row makes the ratio a little off
+        S.outH = sc ? Math.round(sh * sc) : SCREEN_H; if (S.outH < 1000) S.outH = SCREEN_H;
+        S.outW = Math.round(S.outH * 4 / 3);
+      }
+    } else { S.natW = sw; S.natH = sh; }
+  }
+  buildInputTex(); presetForSystem(sys); changed(); updateInfo(); fillSystemSelect();
+}
+$('selSystem').onchange = () => { pushHist(); applySystem($('selSystem').value); };
+function askSystem() {
+  if (!S.img || S.isSample) return;
+  const sel = $('askSel'); sel.innerHTML = '';
+  const gR = document.createElement('optgroup'); gR.label = t('grpRetro');
+  SYSTEMS.forEach(([n, w, h], i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = `${n} — ${w}×${h}`; gR.appendChild(o); });
+  const gM = document.createElement('optgroup'); gM.label = t('grpModern');
+  MODERN.forEach(n => { const o = document.createElement('option'); o.value = 'm' + n; o.textContent = t('modern' + n); gM.appendChild(o); });
+  const big = S.capH >= 600 && (S.unclean || !S.enlarged);   // a big picture without a clean dot grid: most likely a modern game
+  if (big) { sel.appendChild(gM); sel.appendChild(gR); } else { sel.appendChild(gR); sel.appendChild(gM); }
+  const ph = document.createElement('option'); ph.value = ''; ph.textContent = t('pickSys'); sel.prepend(ph); sel.value = '';
+  $('askOk').disabled = true; sel.onchange = () => $('askOk').disabled = !sel.value;
+  $('askP').innerHTML = t('askP', detected.w + '×' + detected.h) + (big ? '<br>' + t('askBig') : '');
+  $('dlgSys').showModal();
+}
+$('askOk').onclick = () => { $('dlgSys').close(); applySystem($('askSel').value); };
+$('askKeep').onclick = () => $('dlgSys').close();
+$('askCrop').onclick = () => { $('dlgSys').close(); openCrop(); };
+
+// crop: drag a box around the game picture on the whole capture
+const crop = {sel:null, drag:null, scale:1, ox:0, oy:0};
+function openCrop() {
+  if (!S.raw) return;
+  $('crop').classList.remove('hid'); hideToast();
+  const area = $('cropArea'), cv = $('cropCv'), r0 = area.getBoundingClientRect();
+  const sc = Math.min(r0.width / S.raw.width, r0.height / S.raw.height, 8);
+  cv.width = S.raw.width; cv.height = S.raw.height; cv.getContext('2d').drawImage(S.raw, 0, 0);
+  cv.style.width = S.raw.width * sc + 'px'; cv.style.height = S.raw.height * sc + 'px';
+  crop.ox = (r0.width - S.raw.width * sc) / 2; crop.oy = (r0.height - S.raw.height * sc) / 2; crop.scale = sc;
+  cv.style.left = crop.ox + 'px'; cv.style.top = crop.oy + 'px';
+  crop.sel = null; $('cropBox').classList.add('hid'); $('bCropOk').disabled = true;
+}
+function closeCrop() { $('crop').classList.add('hid'); }
+function cropPt(e) {
+  const r0 = $('cropArea').getBoundingClientRect();
+  return [Math.max(0, Math.min(S.raw.width, (e.clientX - r0.left - crop.ox) / crop.scale)),
+          Math.max(0, Math.min(S.raw.height, (e.clientY - r0.top - crop.oy) / crop.scale))];
+}
+function showCropBox() {
+  const b = crop.sel, el = $('cropBox'); if (!b) return el.classList.add('hid');
+  el.classList.remove('hid');
+  el.style.left = crop.ox + b[0] * crop.scale + 'px'; el.style.top = crop.oy + b[1] * crop.scale + 'px';
+  el.style.width = (b[2] - b[0]) * crop.scale + 'px'; el.style.height = (b[3] - b[1]) * crop.scale + 'px';
+}
+// pull each edge of the box onto the strongest colour edge nearby, so a rough drag still lands on the exact pixel
+function snapBox(b) {
+  const c = S.raw, W = c.width, H = c.height, d = c.getContext('2d', {willReadFrequently:true}).getImageData(0, 0, W, H).data;
+  const lum = (x, y) => { const i = (y * W + x) * 4; return 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2]; };
+  const R = Math.min(40, Math.max(4, Math.round(14 / crop.scale)));   // about 14 screen px of slack around the drag
+  const col = (x, y0, y1) => { let e = 0; for (let y = y0; y < y1; y += 2) e += Math.abs(lum(x, y) - lum(x - 1, y)); return e; };
+  const row = (y, x0, x1) => { let e = 0; for (let x = x0; x < x1; x += 2) e += Math.abs(lum(x, y) - lum(x, y - 1)); return e; };
+  const best = (v, lo, hi, f) => { let bv = v, be = -1; for (let p = Math.max(lo, v - R); p <= Math.min(hi, v + R); p++) { const e = f(p); if (e > be) { be = e; bv = p; } } return bv; };
+  const nearBorder = (v, lo, hi, f, n, border) => {     // keep the image border unless a strong edge is close by
+    const p = best(Math.min(Math.max(v, lo), hi), lo, hi, f); return f(p) / n > 12 ? p : border; };
+  let [x0, y0, x1, y1] = b.map(Math.round);
+  const yy0 = Math.max(1, y0 + 2), yy1 = Math.min(H - 1, y1 - 2), xx0 = Math.max(1, x0 + 2), xx1 = Math.min(W - 1, x1 - 2);
+  const nc = (yy1 - yy0) / 2, nr = (xx1 - xx0) / 2, fc = x => col(x, yy0, yy1), fr = y => row(y, xx0, xx1);
+  x0 = x0 <= R ? nearBorder(x0, 1, W - 1, fc, nc, 0) : best(x0, 1, W - 1, fc);
+  x1 = x1 >= W - R ? nearBorder(x1, 1, W - 1, fc, nc, W) : best(x1, 1, W - 1, fc);
+  y0 = y0 <= R ? nearBorder(y0, 1, H - 1, fr, nr, 0) : best(y0, 1, H - 1, fr);
+  y1 = y1 >= H - R ? nearBorder(y1, 1, H - 1, fr, nr, H) : best(y1, 1, H - 1, fr);
+  return [x0, y0, Math.max(x0 + 8, x1), Math.max(y0 + 8, y1)];
+}
+$('cropArea').addEventListener('pointerdown', e => { e.stopPropagation(); $('cropArea').setPointerCapture(e.pointerId); const p = cropPt(e); crop.drag = p; crop.sel = [p[0], p[1], p[0], p[1]]; showCropBox(); });
+$('cropArea').addEventListener('pointermove', e => {
+  if (!crop.drag) return; const p = cropPt(e), a = crop.drag;
+  crop.sel = [Math.min(a[0], p[0]), Math.min(a[1], p[1]), Math.max(a[0], p[0]), Math.max(a[1], p[1])]; showCropBox();
+});
+$('cropArea').addEventListener('pointerup', () => {
+  if (!crop.drag) return; crop.drag = null;
+  const b = crop.sel;
+  if (!b || b[2] - b[0] < 8 || b[3] - b[1] < 8) { crop.sel = null; showCropBox(); $('bCropOk').disabled = true; return; }
+  crop.sel = snapBox(b); showCropBox(); $('bCropOk').disabled = false;
+});
+$('bCropOk').onclick = () => {
+  const [x0, y0, x1, y1] = crop.sel, o = document.createElement('canvas'); o.width = x1 - x0; o.height = y1 - y0;
+  o.getContext('2d', {willReadFrequently:true}).drawImage(S.raw, x0, y0, o.width, o.height, 0, 0, o.width, o.height);
+  closeCrop(); setInput(o, S.name, true); S.cropNote = (x1 - x0) + '×' + (y1 - y0); updateInfo();
+};
+$('bCropAll').onclick = () => { closeCrop(); setInput(S.raw, S.name, true); S.cropNote = ''; updateInfo(); };
+$('bCropCancel').onclick = closeCrop;
+$('bCrop').onclick = openCrop;
+function closeTools() { $('toolsPop').classList.add('hid'); $('bTools').setAttribute('aria-expanded', 'false'); }
+$('bTools').onclick = e => { e.stopPropagation(); const p = $('toolsPop'); p.classList.toggle('hid'); $('bTools').setAttribute('aria-expanded', String(!p.classList.contains('hid'))); };
+$('toolsPop').addEventListener('click', e => { if (e.target.closest('button')) closeTools(); });
+document.addEventListener('click', e => { if (!e.target.closest('#mTools')) closeTools(); });
+// share: the changed values ride in the link (#preset=…&NAME=value); opening the link starts from them
+function shareURL() {
+  const q = new URLSearchParams(); q.set('preset', S.presetKey.replace('.slangp', ''));
+  for (const p of PARAMS) if (!isHeader(p) && Math.abs((S.vals[p.name] ?? p.d) - (S.base[p.name] ?? p.d)) > 1e-6) q.set(p.name, String(+(S.vals[p.name]).toFixed(4)));
+  return location.href.split('#')[0] + '#' + q.toString();
+}
+$('bShare').onclick = () => {
+  const u = shareURL();
+  const done = () => alert(location.protocol === 'file:' ? t('shareLocal') : t('shareDone'));
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done, () => prompt(t('shareCopy'), u));
+  else prompt(t('shareCopy'), u);
+};
+// size dialog
+$('bSize').onclick = () => {
+  $('nW').value = S.natW || ''; $('nH').value = S.natH || ''; $('oW').value = S.outW; $('oH').value = S.outH; $('cRot').checked = S.rot;
+  $('dlgSize').showModal();
+};
+SYSTEMS.forEach(([n, w, h, ps]) => { const o = document.createElement('option'); o.value = w + 'x' + h; o.textContent = `${n} — ${w}×${h}`; $('selSys').appendChild(o); });
+$('selSys').onchange = () => { const v = $('selSys').value; if (!v) return; const [w, h] = v.split('x'); $('nW').value = w; $('nH').value = h; applySize(); $('selSys').value = ''; };
+$('bAuto').onclick = () => { $('nW').value = detected.w; $('nH').value = detected.h; applySize(); };
+['nW','nH','oW','oH'].forEach(id => $(id).addEventListener('change', applySize));
+$('cRot').addEventListener('change', applySize);
+$('bApplyScr').onclick = () => {
+  const h = +$('selScreen').value || S.outH, a = $('selAspect').value;
+  const nw = +$('nW').value || S.natW, nh = +$('nH').value || S.natH;
+  let w = a === '4:3' ? h * 4 / 3 : a === '3:4' ? h * 3 / 4 : a === '8:7' ? h * (nw / nh) * 8 / 7 : h * nw / nh;
+  $('oW').value = Math.round(w); $('oH').value = h; applySize();
+};
+function applySize() {
+  if (!S.img) return;
+  S.natW = Math.max(16, +$('nW').value | 0); S.natH = Math.max(16, +$('nH').value | 0);
+  S.outW = Math.max(64, +$('oW').value | 0); S.outH = Math.max(64, +$('oH').value | 0); S.rot = $('cRot').checked;
+  buildInputTex(); changed(); updateInfo(); fillSystemSelect();
+}
+$('bSizeOk').onclick = () => $('dlgSize').close();
+window.addEventListener('resize', () => { redraw(); if (!$('crop').classList.contains('hid')) openCrop(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('crop').classList.contains('hid')) closeCrop(); });
+matchMedia(`(resolution: ${dpr()}dppx)`).addEventListener?.('change', redraw);
+
+function setLang(l) {
+  LANG = l; try { localStorage.setItem('rcp-lang', l); } catch (e) {}
+  applyLang(); const keep = S.presetKey; const sel = $('selPreset'); const fresh = sel.cloneNode(false); sel.replaceWith(fresh);
+  fillPresetSelect(); $('selPreset').value = keep; buildPanel(); syncPanel(); updateInfo(); fillSystemSelect(); redraw();
+}
+$('bLang').onclick = () => setLang(LANG === 'ko' ? 'en' : 'ko');
+applyLang(); fillPresetSelect(); buildPanel(); applyPreset(SHARED ? SHARED.key : BASE_KEY, SHARED ? SHARED.vals : undefined); fillSystemSelect();
+if (SAMPLE) loadSample();
+if (!hasFloat) $('info').innerHTML = '<span class="warn">' + t('noFloat') + '</span>';
+
+// test hooks (used for automatic checks; harmless in normal use)
+window.__crt = {undo, redo, pushHist, HIST, shareURL, MON, exportText, measurePitch, getCrop: () => crop, loadSample, setLang, findPreset, scoreAgainstRef, setRotDir: d => { ROT_DIR = d; buildInputTex(); changed(); }, S, setInput, setRef, applyPreset, resultCanvas, applySize, changed, imgToCanvas, shaderView, buildInputTex};
+</script>
+</body>
+</html>
