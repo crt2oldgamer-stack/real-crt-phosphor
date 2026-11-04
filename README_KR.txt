@@ -1,4 +1,4 @@
-Real CRT Phosphor v1.1  — RetroArch용 CRT 셰이더 (slang)
+Real CRT Phosphor v1.1.1  — RetroArch용 CRT 셰이더 (slang)
 제작: 건군 (기획·방향·실기 테스트·튜닝)
 AI 저작물 표시: 코드 대부분을 AI(Claude, ChatGPT)가 작성했습니다. 자세한 내용은 LICENSE_KR.txt
 
@@ -16,6 +16,15 @@ AI 저작물 표시: 코드 대부분을 AI(Claude, ChatGPT)가 작성했습니�
      - 바로 써 보기: real-crt-phosphor.slangp
      - 추천 설정:   presets/4K/ (4K 모니터), presets/Ally/ (1080p 휴대기기)
   4) 마음에 들면 Save → Save Core Preset (기종마다)
+
+■ v1.1.1 변경점 (속도 개선, 화면은 그대로)
+  아이패드·스마트폰 같은 휴대기기 GPU에서 느리던 부분을 고쳤습니다.
+  - 감마 변환(pow)을 화면 해상도 단계에서 게임 원래 해상도 단계로 옮김
+    → 화면 픽셀마다 하던 pow 32번이 0번 (Signal 단계는 실수 버퍼로 선형값 저장)
+  - 밝은 곳 빛 덩어리 계산을 exp 1번 + 보정식으로 간소화 (덩어리가 1.2px 이상일 때)
+  - 화면 단계의 특수 함수(pow·exp 등) 계산량 약 1/4로 감소
+  - 이전 버전과 결과 차이: 픽셀당 최대 2/255 (눈으로 구별 불가)
+  ※ 기존 프리셋·게임 프리셋은 그대로 쓰면 됩니다. 폴더째 덮어쓰기만 하세요.
 
 ■ 두 가지 마스크 (v1.1 새 기능)
   Aperture Grille  세로 RGB 줄. 소니 계열 TV 느낌. 기본값.

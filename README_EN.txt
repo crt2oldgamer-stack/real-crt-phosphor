@@ -1,4 +1,4 @@
-Real CRT Phosphor v1.1 — CRT shader for RetroArch (slang)
+Real CRT Phosphor v1.1.1 — CRT shader for RetroArch (slang)
 by gunkun (concept, direction, testing, tuning)
 AI-generated work: most of the code was written by AI (Claude, ChatGPT). See LICENSE.txt
 
@@ -10,6 +10,14 @@ Install: copy the real-crt-phosphor folder into RetroArch/shaders/shaders_slang/
 load real-crt-phosphor.slangp, or a tuned preset from presets/4K or presets/Ally.
 Per-game tweaks: adjust parameters, then Save Game Preset.
 Tip: view screenshots at 100% — downscaling destroys the stripe pattern.
+
+v1.1.1: speed-up for phone and tablet GPUs, same picture.
+  - Gamma decoding (pow) moved from the screen-size pass to the game-resolution pass:
+    32 pow() per screen pixel -> 0 (the Signal pass now keeps linear light in a float buffer).
+  - Highlight melt blobs use one exp plus a correction term instead of two erfc (blobs >= 1.2 px).
+  - About 1/4 of the special-function work (pow, exp...) left in the screen-size passes.
+  - Difference from v1.1: at most 2/255 per pixel (not visible).
+  Existing presets and game presets keep working: just overwrite the folder.
 
 v1.1: new "Mask type" parameter — 0 Aperture Grille (default), 1 Slot Mask.
 Recommended pitch: Grille 4.5, Slot 3 (larger slot pitch makes the slot gaps look harsh).
