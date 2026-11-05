@@ -58,7 +58,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto
 .seg button{border-radius:0;margin-left:-1px}
 .seg button:first-child{border-radius:6px 0 0 6px;margin-left:0}
 .seg button:last-child{border-radius:0 6px 6px 0}
-#stage{position:relative;overflow:hidden;cursor:grab;background:#000}
+#stage{position:relative;overflow:hidden;cursor:grab;background:#000;touch-action:none}
 #stage.drag{cursor:grabbing}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 .cap{position:absolute;top:8px;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.6);color:#ddd;font-size:12px;pointer-events:none}
@@ -114,7 +114,45 @@ dialog .where{display:block;margin:5px 0;font-size:13px;cursor:pointer}
 dialog .where code{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:12px}
 dialog pre{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;max-height:200px;overflow:auto;font-size:12px}
 .hid{display:none!important}
-@media (max-width:820px){ main{grid-template-columns:1fr;grid-template-rows:45% 55%} aside{border-right:0;border-bottom:1px solid var(--line)} }
+#bMenu{display:none}
+/* ---------- phones and small tablets ---------- */
+@media (max-width:820px), (max-height:520px) and (orientation:landscape) {
+  header{flex-wrap:wrap;gap:6px;padding:6px 10px}
+  header .mark{height:16px} header .mark i{width:4px}
+  h1{font-size:14px;margin:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 0}
+  h1 small{display:none}
+  header .sp{display:none}
+  header .hm{display:none}
+  #bSave{order:3;padding:6px 10px} #bMenu{display:inline-block;order:4;padding:6px 11px}
+  header.open .hm{display:inline-flex;order:10;flex:1 1 46%;justify-content:center}
+  header.open::after{content:"";order:9;flex-basis:100%;height:0}   /* menu items always start on a new line */
+  header.open label.hm{display:none}
+  header.open #mSave{display:inline-block} header.open #mSave>button{width:100%}
+  .vbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:6px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .vbar::-webkit-scrollbar{display:none}
+  .vbar .lb, #dprInfo{display:none}
+  .vbar>*{flex:0 0 auto}
+  .vbar button, .vbar select{padding:5px 9px}
+  #selSystem{max-width:58vw}
+  footer{flex-wrap:nowrap;overflow:hidden;white-space:nowrap;cursor:pointer;padding:5px 10px;gap:12px}
+  footer::after{content:"▾";margin-left:auto;padding-left:8px}
+  footer.open{flex-wrap:wrap;white-space:normal} footer.open::after{content:"▴"}
+  #stage.split #toast, #stage.wipemode #toast, #toast{left:50%;width:calc(100% - 20px);bottom:10px}
+  #toast{padding:10px 12px} #toast h2{font-size:14px} #toast p{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px}
+  #toast .acts button{padding:5px 10px}
+  .pop{position:fixed;min-width:220px}
+  .prm{padding:5px 12px 7px 20px}
+  #side.simple .prm.key{padding-left:12px}
+}
+/* portrait phone: picture on top, values below */
+@media (max-width:820px) and (orientation:portrait), (max-width:600px) {
+  main{grid-template-columns:1fr;grid-template-rows:minmax(0,57%) minmax(0,43%)}
+  main>.view{grid-row:1} main>aside{grid-row:2;border-right:0;border-top:1px solid var(--line)}
+}
+/* landscape phone: values left (narrower), picture right */
+@media (max-height:520px) and (orientation:landscape) {
+  main{grid-template-columns:min(300px,38vw) 1fr}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -122,20 +160,21 @@ dialog pre{background:var(--panel2);border:1px solid var(--line);border-radius:6
 <header>
   <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
   <h1><span data-i="title"></span><small>v1.1.1</small></h1>
-  <button id="bOpen" data-i="open"></button>
-  <button id="bRef" disabled data-i="openRef"></button>
+  <button id="bOpen" class="hm" data-i="open"></button>
+  <button id="bRef" class="hm" disabled data-i="openRef"></button>
   <span class="sp"></span>
-  <label class="lb" for="selPreset" data-i="startPreset"></label>
-  <select id="selPreset"></select>
-  <button id="bImport" data-i="import"></button>
+  <label class="lb hm" for="selPreset" data-i="startPreset"></label>
+  <select id="selPreset" class="hm"></select>
+  <button id="bImport" class="hm" data-i="import"></button>
   <button id="bSave" disabled data-i="save"></button>
-  <div class="menu" id="mSave"><button id="bPng" disabled aria-haspopup="true" aria-expanded="false"><span data-i="png"></span> ▾</button>
+  <div class="menu hm" id="mSave"><button id="bPng" disabled aria-haspopup="true" aria-expanded="false"><span data-i="png"></span> ▾</button>
     <div class="pop hid" id="savePop" role="menu">
       <button id="bPngFull" data-i="pngFull" data-it="pngFullTip"></button>
       <button id="bPngCmp" data-i="pngCmp" data-it="pngCmpTip"></button>
       <button id="bPngView" data-i="pngView" data-it="pngViewTip"></button>
     </div></div>
-  <button id="bLang" title="Language / 언어">한국어</button>
+  <button id="bLang" class="hm" title="Language / 언어">한국어</button>
+  <button id="bMenu" aria-expanded="false" aria-label="menu">☰</button>
   <input type="file" id="fImg" accept="image/*" class="hid">
   <input type="file" id="fRef" accept="image/*" class="hid">
   <input type="file" id="fPreset" accept=".slangp,.txt" class="hid">
@@ -1334,7 +1373,7 @@ $('bSaveGo').onclick = () => {
 };
 // ---- image saving: the whole result, an original|result comparison of what is on screen, or the view itself
 const stem = () => (S.name || 'result').replace(/\.[^.]+$/, '');
-$('bPng').onclick = e => { e.stopPropagation(); const p = $('savePop'); p.classList.toggle('hid'); $('bPng').setAttribute('aria-expanded', String(!p.classList.contains('hid'))); };
+$('bPng').onclick = e => { e.stopPropagation(); const p = $('savePop'); p.classList.toggle('hid'); placePop($('bPng'), p); $('bPng').setAttribute('aria-expanded', String(!p.classList.contains('hid'))); };
 $('savePop').addEventListener('click', e => { if (e.target.closest('button')) { $('savePop').classList.add('hid'); $('bPng').setAttribute('aria-expanded', 'false'); } });
 document.addEventListener('click', e => { if (!e.target.closest('#mSave')) $('savePop').classList.add('hid'); });
 $('bPngFull').onclick = () => resultCanvas().toBlob(b => download(stem() + '_preview.png', b), 'image/png');
@@ -1414,7 +1453,7 @@ stage.addEventListener('pointerdown', e => {
   if (!origTex || e.target.closest('#crop, #toast')) return;   // buttons on top of the picture keep their clicks
   if (S.mode === 'wipe') {
     const rc = stage.getBoundingClientRect(), bx = rc.left + rc.width * S.wipe;
-    if (Math.abs(e.clientX - bx) < 22) {
+    if (Math.abs(e.clientX - bx) < (e.pointerType === 'touch' ? 40 : 22)) {
       stage.setPointerCapture(e.pointerId); stage.classList.add('wiping');
       const mv = ev => { S.wipe = Math.min(1, Math.max(0, (ev.clientX - rc.left) / rc.width)); redraw(); };
       const up = () => { stage.classList.remove('wiping'); stage.removeEventListener('pointermove', mv); stage.removeEventListener('pointerup', up); stage.removeEventListener('pointercancel', up); };
@@ -1613,7 +1652,7 @@ $('bCropAll').onclick = () => { closeCrop(); setInput(S.raw, S.name, true); S.cr
 $('bCropCancel').onclick = closeCrop;
 $('bCrop').onclick = openCrop;
 function closeTools() { $('toolsPop').classList.add('hid'); $('bTools').setAttribute('aria-expanded', 'false'); }
-$('bTools').onclick = e => { e.stopPropagation(); const p = $('toolsPop'); p.classList.toggle('hid'); $('bTools').setAttribute('aria-expanded', String(!p.classList.contains('hid'))); };
+$('bTools').onclick = e => { e.stopPropagation(); const p = $('toolsPop'); p.classList.toggle('hid'); placePop($('bTools'), p); $('bTools').setAttribute('aria-expanded', String(!p.classList.contains('hid'))); };
 $('toolsPop').addEventListener('click', e => { if (e.target.closest('button')) closeTools(); });
 document.addEventListener('click', e => { if (!e.target.closest('#mTools')) closeTools(); });
 // share: the changed values ride in the link (#preset=…&NAME=value); opening the link starts from them
@@ -1628,6 +1667,20 @@ $('bShare').onclick = () => {
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done, () => prompt(t('shareCopy'), u));
   else prompt(t('shareCopy'), u);
 };
+const PHONE = () => matchMedia('(max-width:820px), (max-height:520px) and (orientation:landscape)').matches;
+$('bMenu').onclick = e => { e.stopPropagation(); const h = document.querySelector('header'); h.classList.toggle('open'); $('bMenu').setAttribute('aria-expanded', String(h.classList.contains('open'))); redraw(); setTimeout(redraw, 50); };
+document.addEventListener('click', e => {      // the ☰ menu closes after picking something in it (not when opening a sub-menu)
+  const h = document.querySelector('header');
+  if (h.classList.contains('open') && PHONE() && e.target.closest('header .hm button, header select.hm, header button.hm') && !e.target.closest('#bPng')) {
+    if (e.target.tagName !== 'SELECT') setTimeout(() => { h.classList.remove('open'); redraw(); }, 0);
+  }
+});
+$('info').addEventListener('click', () => { if (PHONE()) { $('info').classList.toggle('open'); redraw(); setTimeout(redraw, 50); } });
+function placePop(btn, pop) {   // phones: the bar scrolls sideways, so menus are pinned to the screen under their button
+  if (!PHONE()) { pop.style.top = pop.style.left = pop.style.right = ''; return; }
+  const r = btn.getBoundingClientRect();
+  pop.style.top = (r.bottom + 4) + 'px'; pop.style.right = Math.max(8, innerWidth - r.right) + 'px'; pop.style.left = 'auto';
+}
 // size dialog
 $('bSize').onclick = () => {
   $('nW').value = S.natW || ''; $('nH').value = S.natH || ''; $('oW').value = S.outW; $('oH').value = S.outH; $('cRot').checked = S.rot;
@@ -1651,6 +1704,7 @@ function applySize() {
   buildInputTex(); changed(); updateInfo(); fillSystemSelect();
 }
 $('bSizeOk').onclick = () => $('dlgSize').close();
+window.addEventListener('orientationchange', () => setTimeout(redraw, 200));
 window.addEventListener('resize', () => { redraw(); if (!$('crop').classList.contains('hid')) openCrop(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('crop').classList.contains('hid')) closeCrop(); });
 matchMedia(`(resolution: ${dpr()}dppx)`).addEventListener?.('change', redraw);
