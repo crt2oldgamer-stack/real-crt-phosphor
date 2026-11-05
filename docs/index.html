@@ -202,6 +202,7 @@ dialog pre{background:var(--panel2);border:1px solid var(--line);border-radius:6
           <button id="bSize" data-i="size"></button>
           <button id="bCrop" disabled data-i="crop" data-it="cropTip"></button>
           <button id="bFind" disabled data-i="find" data-it="findTip"></button>
+          <button id="bPasteTxt" data-i="pasteTxt" data-it="pasteTxtTip"></button>
           <button id="bShare" data-i="share" data-it="shareTip"></button>
         </div></div>
       <span class="sp"></span>
@@ -257,6 +258,15 @@ dialog pre{background:var(--panel2);border:1px solid var(--line);border-radius:6
   <h3 data-i="find"></h3>
   <p id="findMsg"></p>
   <div class="row" style="justify-content:flex-end"><button id="bFindCancel" data-i="cancel"></button></div>
+</dialog>
+
+<dialog id="dlgText">
+  <h3 data-i="pasteTxt"></h3>
+  <p data-i="txtHelp"></p>
+  <textarea id="txtIn" rows="10" style="width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px;font:12px/1.4 ui-monospace,Consolas,monospace" spellcheck="false"></textarea>
+  <div class="row"><label><input type="radio" name="txtBase" value="ref" checked> <span data-i="txtBaseRef"></span></label></div>
+  <div class="row" style="margin-top:-4px"><label><input type="radio" name="txtBase" value="current"> <span data-i="txtBaseCur"></span></label></div>
+  <div class="row" style="justify-content:flex-end"><button id="bTxtCancel" data-i="cancel"></button><button id="bTxtGo" class="on" data-i="txtApply"></button></div>
 </dialog>
 
 <dialog id="dlgSave">
@@ -364,6 +374,12 @@ const TXT = {
   pngView:"보이는 화면 그대로", pngViewTip:"지금 화면에 보이는 모습(밀어서 비교 막대 포함)을 1:1로 저장합니다",
   cmpEdited:"(값 {0}개 수정)", cmpFoot:"게임 {0} · RetroArch 화면 {1} · 1:1 확대 · Real CRT Phosphor Preview {2}",
   findErr:"프리셋 찾기 중 오류가 났습니다. 원래 설정으로 되돌렸습니다.", findStop:"멈추는 중…",
+  pasteTxt:"프리셋 텍스트 붙여넣기", pasteTxtTip:"댓글 등에 글자로 올라온 프리셋 수치를 붙여 넣어 적용합니다",
+  txtHelp:"게시판 댓글이나 .slangp 내용을 그대로 붙여 넣으세요. NAME = \"값\" 형식이면 앞뒤의 ` 기호나 따옴표가 섞여 있어도 읽습니다. 공유 링크 주소도 됩니다.",
+  txtBaseRef:"#reference 줄의 프리셋을 기준으로 (없으면 지금 프리셋 위에)", txtBaseCur:"지금 프리셋 위에 덮어쓰기", txtApply:"적용",
+  txtNone:"읽을 수 있는 수치가 없습니다. NAME = \"값\" 형식인지 확인해 주세요.",
+  txtDone:"값 {0}개를 적용했습니다 (기준: {1}). 마음에 안 들면 되돌리기(Ctrl+Z).", txtOnCurrent:"지금 프리셋",
+  txtUnknown:"모르는 이름 {0}개는 무시했습니다: {1}", txtAsk:"붙여 넣은 글에서 프리셋 수치를 찾았습니다. 적용할까요?",
   noFloat:"정확한 미리보기 불가: 실수 버퍼 미지원 (결과는 참고용)",
   notExact:"이 브라우저(또는 기기)는 셰이더에 필요한 실수(float) 버퍼를 지원하지 않습니다. 지금 보이는 결과는 RetroArch와 다를 수 있으니 참고용으로만 보세요. 최신 Chrome·Edge·Firefox를 권장합니다."
  },
@@ -441,6 +457,12 @@ const TXT = {
   pngView:"The view as shown", pngViewTip:"Saves exactly what is on screen now (wipe bar included), at 1:1",
   cmpEdited:"({0} values changed)", cmpFoot:"Game {0} · RetroArch screen {1} · shown 1:1 · Real CRT Phosphor Preview {2}",
   findErr:"Something went wrong while searching. Your settings were put back.", findStop:"Stopping…",
+  pasteTxt:"Paste preset text", pasteTxtTip:"Apply preset values someone posted as text, e.g. in a comment",
+  txtHelp:"Paste a comment or the contents of a .slangp file. Lines like NAME = \"value\" are read even with ` marks or missing quotes around them. A settings link works too.",
+  txtBaseRef:"Use the preset in the #reference line (or the current one if there is none)", txtBaseCur:"Apply on top of the current preset", txtApply:"Apply",
+  txtNone:"No values found. Check that the lines look like NAME = \"value\".",
+  txtDone:"Applied {0} values (base: {1}). Undo with Ctrl+Z if you don't like it.", txtOnCurrent:"current preset",
+  txtUnknown:"Ignored {0} unknown names: {1}", txtAsk:"The pasted text contains preset values. Apply them?",
   noFloat:"Not an exact preview: float buffers unsupported (reference only)",
   notExact:"This browser (or device) does not support the float buffers the shader needs. What you see may differ from RetroArch, so treat it as a rough reference only. A current Chrome, Edge or Firefox is recommended."
  }
@@ -1188,10 +1210,39 @@ function fillPresetSelect() {
 
 // ================= .slangp import / export =================
 function parseSlangp(txt) {
-  const vals = {};
-  for (const m of txt.matchAll(/^\s*(\w+)\s*=\s*"?([-\d.]+)"?\s*$/gm)) if (m[1] in defaults) vals[m[1]] = +m[2];
-  const ref = (txt.match(/#reference\s+"([^"]+)"/) || [])[1];
-  return {vals, ref: ref ? ref.split(/[\\/]/).pop() : null};
+  const vals = {}, unknown = new Set();
+  let ref = null;
+  // a shared link: …#preset=4k-ps1&GLOW=0.3
+  const link = txt.match(/#preset=([\w.-]+)((?:&\w+=[-\d.]+)*)/);
+  if (link) {
+    ref = link[1].endsWith('.slangp') ? link[1] : link[1] + '.slangp';
+    for (const m of link[2].matchAll(/&(\w+)=([-\d.]+)/g)) (m[1] in defaults ? vals[m[1]] = +m[2] : unknown.add(m[1]));
+    return {vals, ref, unknown: [...unknown]};
+  }
+  const clean = txt.replace(/[`*]/g, ' ').replace(/[“”„]/g, '"');   // reddit/markdown leftovers, smart quotes
+  for (const m of clean.matchAll(/(^|[\s,;])([A-Za-z][A-Za-z0-9_]*)\s*[=:]\s*"?\s*(-?\d+(?:\.\d+)?|-?\.\d+)\s*"?/gm)) {
+    const n = m[2].toUpperCase();
+    if (/^(SHADER|FILTER_LINEAR|SCALE|FLOAT_FRAMEBUFFER|SRGB_FRAMEBUFFER|WRAP_MODE|MIPMAP_INPUT|ALIAS|SHADERS|FRAME_COUNT_MOD)/.test(n)) continue;   // pass settings, not values
+    if (n in defaults) vals[n] = +m[3]; else unknown.add(m[2]);
+  }
+  const rf = (clean.match(/#reference\s+"?([^"\s]+)"?/) || [])[1];
+  if (rf) ref = rf.split(/[\\/]/).pop();
+  return {vals, ref, unknown: [...unknown]};
+}
+// apply parsed text: on the referenced preset if there is one, otherwise on top of what is set now
+function applyPresetText(txt, mode) {
+  const r = parseSlangp(txt), n = Object.keys(r.vals).length;
+  if (!n) { alert(t('txtNone')); return false; }
+  let base;
+  if (mode === 'current' || !r.ref) base = null;
+  else if (PRESETS[r.ref]) base = r.ref;
+  else { alert(t('importMiss', r.ref)); base = null; }
+  pushHist();
+  if (base) applyPreset(base, r.vals);
+  else { Object.assign(S.vals, r.vals); syncPanel(); changed(); }
+  hideToast();
+  alert(t('txtDone', n, base ? base.replace('.slangp', '') : t('txtOnCurrent')) + (r.unknown.length ? '\n' + t('txtUnknown', r.unknown.length, r.unknown.slice(0, 6).join(', ')) : ''));
+  return true;
 }
 // Where the file will be dropped decides the path to the shader:
 //  shaders : RetroArch/shaders/            -> points straight at the shader, every value written out
@@ -1352,7 +1403,7 @@ $('fPreset').onchange = e => {
     const r = parseSlangp(txt);
     let base = r.ref && PRESETS[r.ref] ? r.ref : (r.ref ? null : 'real-crt-phosphor.slangp');
     if (!base) { alert(t('importMiss', r.ref)); base = S.presetKey; }
-    pushHist(); applyPreset(base, r.vals);
+    pushHist(); applyPreset(base, r.vals); hideToast();
   });
 };
 function fillSave() {
@@ -1502,7 +1553,11 @@ document.addEventListener('paste', e => {
   if (S.busy) return;
   if (e.target.closest && e.target.closest('input, textarea')) return;
   const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
-  if (!it) return;
+  if (!it) {
+    const txt = e.clipboardData?.getData('text') || '';
+    if (Object.keys(parseSlangp(txt).vals).length) { e.preventDefault(); if (confirm(t('txtAsk'))) applyPresetText(txt, 'ref'); }
+    return;
+  }
   e.preventDefault();
   const f = it.getAsFile(), name = 'clipboard.png';
   if (!S.img || S.isSample) loadBlob(f, false, name);
@@ -1681,6 +1736,12 @@ function placePop(btn, pop) {   // phones: the bar scrolls sideways, so menus ar
   const r = btn.getBoundingClientRect();
   pop.style.top = (r.bottom + 4) + 'px'; pop.style.right = Math.max(8, innerWidth - r.right) + 'px'; pop.style.left = 'auto';
 }
+$('bPasteTxt').onclick = () => { $('txtIn').value = ''; $('dlgText').showModal(); setTimeout(() => $('txtIn').focus(), 50); };
+$('bTxtCancel').onclick = () => $('dlgText').close();
+$('bTxtGo').onclick = () => {
+  const mode = (document.querySelector('input[name=txtBase]:checked') || {}).value;
+  if (applyPresetText($('txtIn').value, mode)) $('dlgText').close();
+};
 // size dialog
 $('bSize').onclick = () => {
   $('nW').value = S.natW || ''; $('nH').value = S.natH || ''; $('oW').value = S.outW; $('oH').value = S.outH; $('cRot').checked = S.rot;
@@ -1721,7 +1782,7 @@ function showExactness() { $('notExact').classList.toggle('hid', glExact); }
 showExactness();
 
 // test hooks (used for automatic checks; harmless in normal use)
-window.__crt = {fb11: () => fbs[11].fb, passReach, findPreset, setExact: v => { glExact = v; showExactness(); updateInfo(); }, runPipeline, viewRegion, toPipe, undo, redo, pushHist, HIST, shareURL, MON, exportText, measurePitch, getCrop: () => crop, loadSample, setLang, findPreset, scoreAgainstRef, setRotDir: d => { ROT_DIR = d; buildInputTex(); changed(); }, S, setInput, setRef, applyPreset, resultCanvas, applySize, changed, imgToCanvas, shaderView, buildInputTex};
+window.__crt = {parseSlangp, applyPresetText, fb11: () => fbs[11].fb, passReach, findPreset, setExact: v => { glExact = v; showExactness(); updateInfo(); }, runPipeline, viewRegion, toPipe, undo, redo, pushHist, HIST, shareURL, MON, exportText, measurePitch, getCrop: () => crop, loadSample, setLang, findPreset, scoreAgainstRef, setRotDir: d => { ROT_DIR = d; buildInputTex(); changed(); }, S, setInput, setRef, applyPreset, resultCanvas, applySize, changed, imgToCanvas, shaderView, buildInputTex};
 </script>
 </body>
 </html>
