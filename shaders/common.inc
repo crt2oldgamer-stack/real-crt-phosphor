@@ -1,4 +1,4 @@
-// Real CRT Phosphor v1.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // ---- shared helpers (included by every pass) ----
 // Input height relative to a 240-line TV picture: 1 = 240p/224p, 2 = 480 (hi-res/interlaced OR 2x upscale), 4 = 960 ...
 float gk_L(float srcH)   { return max(1.0, floor(srcH / 240.0 + 0.5)); }

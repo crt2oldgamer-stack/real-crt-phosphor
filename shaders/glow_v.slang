@@ -1,6 +1,6 @@
 #version 450
-// Real CRT Phosphor v1.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
-// Pass 7: glow, vertical blur (in scanline units)
+// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Pass 9: glow, vertical blur (in scanline units)
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;
 #include "params.inc"
 #include "ubo.inc"

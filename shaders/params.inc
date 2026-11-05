@@ -1,5 +1,5 @@
-// Real CRT Phosphor v1.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
-#pragma parameter GK_TITLE "=== Real CRT Phosphor v1.1 ===" 0.0 0.0 0.0 1.0
+// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+#pragma parameter GK_TITLE "=== Real CRT Phosphor v1.2 ===" 0.0 0.0 0.0 1.0
 #pragma parameter GK_INFO "    AI-assisted by Claude / ChatGPT - see LICENSE.txt" 0.0 0.0 0.0 1.0
 #pragma parameter GK_SP1 " " 0.0 0.0 0.0 1.0
 #pragma parameter GK_IN "[ INPUT ]  (0 = auto)" 0.0 0.0 0.0 1.0
@@ -67,3 +67,8 @@
 #pragma parameter SLOT_DEPTH "    Slot gap depth (1 = fully dark)" 0.6 0.0 1.0 0.05
 #pragma parameter SLOT_EDGE "    Slot gap edge softness" 0.35 0.05 1.0 0.05
 #pragma parameter SLOT_MELT "    Slot gap fill in highlight glow" 0.65 0.0 1.0 0.05
+#pragma parameter GK_SP9 " " 0.0 0.0 0.0 1.0
+#pragma parameter GK_AG "[ PHOSPHOR AFTERGLOW ]  (motion trail, 0 = off)" 0.0 0.0 0.0 1.0
+#pragma parameter AFTERGLOW "    Afterglow strength (0 = off)" 0.0 0.0 1.0 0.05
+#pragma parameter AG_TIME "    Afterglow time until it looks 10% (ms, 60 fps)" 20.0 5.0 600.0 5.0
+#pragma parameter AG_RED "    Red phosphor lasts longer (x)" 1.2 1.0 4.0 0.1

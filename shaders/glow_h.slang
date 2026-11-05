@@ -1,6 +1,6 @@
 #version 450
-// Real CRT Phosphor v1.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
-// Pass 6: glow, horizontal blur (linear light)
+// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Pass 8: glow, horizontal blur (linear light)
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;
 #include "params.inc"
 #include "ubo.inc"
@@ -28,7 +28,7 @@ void main()
         if (j > r) break;
         float t = float(j);
         float w = exp(-0.5 * t * t / (s * s));
-        acc += w * gk_toLinear(texture(Source, vTexCoord + t * stp).rgb);
+        acc += w * texture(Source, vTexCoord + t * stp).rgb;   // v1.1.1: Signal is already linear
         ws += w;
     }
     FragColor = vec4(acc / ws, 1.0);

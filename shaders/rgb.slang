@@ -1,6 +1,6 @@
 #version 450
-// Real CRT Phosphor v1.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
-// Pass 9: the picture is emitted ONLY by red, green and blue phosphor stripes (no base layer underneath).
+// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Pass 11: the picture is emitted ONLY by red, green and blue phosphor stripes (no base layer underneath).
 // Each stripe shows its own colour of the light falling on it; bright stripes bloom wider and overlap
 // (bright areas melt toward white), dark stripes stay thin (colours split at edges, like a real tube).
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;
@@ -119,11 +119,22 @@ void main()
     float sig = max(global.MELT_BLOB, 0.05) * T;
     vec3 blobs = vec3(0.0);
     int rb = int(ceil((4.0 * sig + 0.5) / T)) + 1;
+    // v1.1.1: a blob wider than ~1.2 px gets its one-pixel area from the midpoint value plus the
+    // 2nd-order correction (one exp instead of two erfc). Same picture, much cheaper on phone/tablet GPUs.
+    bool cheap = sig >= 1.2;
+    float isg2 = 1.0 / (sig * sig);
+    float nrm = T * 0.39894228 / sig;
     for (int di = -5; di <= 5; di++) {
         if (abs(di) > rb) continue;
         float tc = (tri + float(di) + 0.5) * T;
         vec3 C = max(texture(Source, vec2(tc * params.OutputSize.z, y)).rgb, vec3(0.0));
-        float g = T * gk_normalInterval((px - 0.5 - tc) / (1.41421356 * sig), (px + 0.5 - tc) / (1.41421356 * sig));
+        float g;
+        if (cheap) {
+            float q = (px - tc) * (px - tc) * isg2;
+            g = nrm * exp(-0.5 * q) * (1.0 + (q - 1.0) * isg2 * (1.0 / 24.0));
+        } else {
+            g = T * gk_normalInterval((px - 0.5 - tc) / (1.41421356 * sig), (px + 0.5 - tc) / (1.41421356 * sig));
+        }
         if (slot) {
             float gate = mod(tri + float(di), 2.0) < 1.0 ? gates.x : gates.y;
             // Low-cost glow approximation: keep the column phase, soften
