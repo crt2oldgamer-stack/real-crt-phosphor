@@ -1,0 +1,11 @@
+#reference "../../real-crt-phosphor-up4x.slangp"
+# ally-ps2 for 3D games at 4x internal resolution: same picture as ally-ps2, much lighter.
+LUMA_BLUR = "0.700000"
+LUMA_TAIL = "0.600000"
+CHROMA_BLUR = "0.800000"
+S_LOW = "0.300000"
+S_HIGH = "0.650000"
+VERT_BLUR = "0.250000"
+MASK_PITCH = "4.500000"
+FINAL_BLUR = "0.300000"
+BRIGHT = "1.000000"

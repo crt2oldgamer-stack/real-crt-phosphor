@@ -1,4 +1,4 @@
-// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 layout(std140, set = 0, binding = 0) uniform UBO
 {
     mat4 MVP;
@@ -10,5 +10,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float MASK_TYPE, SLOT_HEIGHT, SLOT_GAP, SLOT_EDGE, SLOT_MELT, SLOT_LOCK, SLOT_LINES, SLOT_SHAPE, SLOT_VADJ, SLOT_DEPTH;
     float GK_INFO, GK_SP1, GK_SP2, GK_SP3, GK_SP4, GK_SP5, GK_SP6, GK_SP7, GK_SP8, GK_SLOT;
     float GK_SP9, GK_AG, AFTERGLOW, AG_TIME, AG_RED;
+    float GK_SP10, GK_CURVE, CURVATURE, CORNER, VIGNETTE, MASK_CURVE;
+    float PRESCALE;
 } global;
 vec3 gk_toLinear(vec3 c) { return pow(clamp(c, 0.0, 1.0), vec3(2.2 * global.GAMMA_IN)) * vec3(global.WP_R, global.WP_G, global.WP_B); }

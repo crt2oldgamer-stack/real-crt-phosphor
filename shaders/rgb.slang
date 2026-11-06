@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 11: the picture is emitted ONLY by red, green and blue phosphor stripes (no base layer underneath).
 // Each stripe shows its own colour of the light falling on it; bright stripes bloom wider and overlap
 // (bright areas melt toward white), dark stripes stay thin (colours split at edges, like a real tube).
@@ -53,8 +53,19 @@ void main()
 {
     float T  = gk_triad(params.OutputSize.y);
     float px = vTexCoord.x * params.OutputSize.x;            // screen position (px)
+    // v1.3 option: the mask follows the curved tube too. px becomes the position on the curved mask and the
+    // beam is read back at the matching screen position. Real tubes do this, but thin slanted stripes beat
+    // against the monitor's pixel grid (moire), clearly at 1080p, much less at 4K. Off by default.
+    float pxs = px, sxs = 1.0;
+    if (global.MASK_CURVE > 0.5 && global.CURVATURE > 0.0005) {
+        vec2 wu  = gk_warp(vTexCoord, params.OutputSize.xy);
+        vec2 wu2 = gk_warp(vTexCoord + vec2(params.OutputSize.z, 0.0), params.OutputSize.xy);
+        sxs = max((wu2.x - wu.x) * params.OutputSize.x, 0.2);
+        px = wu.x * params.OutputSize.x;
+    }
     float y  = vTexCoord.y;
-    float gpx = params.OutputSize.x / max(params.OriginalSize.x / gk_box(params.OriginalSize.y), 1.0);   // one game pixel in screen px
+    vec2 OS = params.OriginalSize.xy / gk_pre();            // v1.4: the picture size the passes really work on
+    float gpx = params.OutputSize.x / max(OS.x / gk_box(OS.y), 1.0);   // one game pixel in screen px
     float e  = clamp(global.ST_EDGE, 0.05, 1.0);
     float tri = floor(px / T);
     vec3 outc = vec3(0.0);
@@ -68,7 +79,7 @@ void main()
             // v1.1: slots follow the scanlines. One slot = SLOT_LINES scanlines, its gap sits in the dark
             // seam between two lines, and the neighbouring column is shifted by whole lines (brick pattern).
             // No beating between the slot rhythm and the scanline rhythm.
-            float lines  = (params.OriginalSize.y / gk_box(params.OriginalSize.y)) / gk_rows(params.OriginalSize.y);
+            float lines  = (OS.y / gk_box(OS.y)) / gk_rows(OS.y);
             float linePx = params.OutputSize.y / max(lines, 1.0);
             float nl = floor(clamp(global.SLOT_LINES, 2.0, 4.0) + 0.5);
             float va = clamp(global.SLOT_VADJ, 0.5, 2.0);        // vertical pitch fine-tune (1 = exactly on the scanlines)
@@ -97,9 +108,10 @@ void main()
             float n = n0 + float(i);
             if (n > n1) break;
             float xc = (n + off) * T;                                // centre of a stripe of colour c
-            float V  = max(texture(Source, vec2((xc + conv) * params.OutputSize.z, y))[c], 0.0);
+            float sxp = pxs + (xc + conv - px) / sxs;           // screen position of this stripe (same as xc+conv when flat)
+            float V  = max(texture(Source, vec2(sxp * params.OutputSize.z, y))[c], 0.0);
             float Vw = V;
-            if (yW != y) Vw = max(texture(Source, vec2((xc + conv) * params.OutputSize.z, yW))[c], 0.0);
+            if (yW != y) Vw = max(texture(Source, vec2(sxp * params.OutputSize.z, yW))[c], 0.0);
             float s  = global.ST_DARK + (global.ST_BRIGHT - global.ST_DARK) * sqrt(clamp(Vw, 0.0, 1.0));
             float w  = (T / 3.0) * s;
             float d  = px - xc;
@@ -127,7 +139,7 @@ void main()
     for (int di = -5; di <= 5; di++) {
         if (abs(di) > rb) continue;
         float tc = (tri + float(di) + 0.5) * T;
-        vec3 C = max(texture(Source, vec2(tc * params.OutputSize.z, y)).rgb, vec3(0.0));
+        vec3 C = max(texture(Source, vec2((pxs + (tc - px) / sxs) * params.OutputSize.z, y)).rgb, vec3(0.0));
         float g;
         if (cheap) {
             float q = (px - tc) * (px - tc) * isg2;

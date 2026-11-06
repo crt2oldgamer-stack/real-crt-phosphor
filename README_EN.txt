@@ -1,4 +1,4 @@
-Real CRT Phosphor v1.2 — CRT shader for RetroArch (slang)
+Real CRT Phosphor v1.4 — CRT shader for RetroArch (slang)
 by gunkun (concept, direction, testing, tuning)
 AI-generated work: most of the code was written by AI (Claude, ChatGPT). See LICENSE.txt
 
@@ -10,6 +10,29 @@ Install: copy the real-crt-phosphor folder into RetroArch/shaders/shaders_slang/
 load real-crt-phosphor.slangp, or a tuned preset from presets/4K or presets/Ally.
 Per-game tweaks: adjust parameters, then Save Game Preset.
 Tip: view screenshots at 100% — downscaling destroys the stripe pattern.
+
+v1.4: upscale presets for 3D games (lighter, same picture).
+  Use them when the emulator renders at 2x, 3x or 4x internal resolution (PS1, PSP, N64, PS2...).
+  - real-crt-phosphor-up2x / up3x / up4x.slangp: upscale chains
+  - presets/4K-upscale, presets/Ally-upscale: base, ps1, psp, ps2 (+slot) at 2x / 3x / 4x
+    e.g. PS1 at 3x on a ROG Ally -> presets/Ally-upscale/ally-ps1-up3x.slangp
+  The first pass averages N x N and shrinks the picture back to its original size, so the rest of
+  the shader and its buffers are as light as at 1x. Fewer frame drops at 3x/4x, and much shorter
+  hitches (audio crackle) when a game switches resolution, e.g. entering a battle.
+  The result is pixel-identical to the 1x picture. 2D systems: keep using the normal presets.
+  Suggested for 3D games: 2x internal resolution + up2x. The internal resolution and the preset
+  must match (3x picture -> up3x). In the web preview, Save .slangp picks the upscale chain for 3x/4x.
+
+v1.3: new optional screen curvature, off by default.
+  Menu: [ SCREEN CURVATURE ] at the bottom.
+  - Tube curvature: 0 = flat (default). 0.05 subtle / 0.15 normal / 0.3 strong
+  - Rounded corners, Edge darkening: only with curvature on
+  - Mask follows curvature: 1 = the RGB stripes bend too (default 0). Closer to a real tube,
+    but shows moire at 1080p; much less at 4K
+  The picture is bent BEFORE the scanlines and RGB stripes are drawn, so there is none of the moire
+  you get from appending a separate curvature shader. By default the RGB stripes stay straight on the screen;
+  the picture and scanlines curve. Curvature 0 gives exactly the v1.2 picture.
+  With the slot mask, Slot lock can drift slightly from the scanlines at strong curvature.
 
 v1.2: new optional phosphor afterglow (motion trail), off by default.
   Menu: [ PHOSPHOR AFTERGLOW ] at the bottom.

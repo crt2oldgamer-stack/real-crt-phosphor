@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Real CRT Phosphor Opt Test 2: unchanged discrete Gaussian, weights computed per vertex.
 // Requires filter_linear=true for this pass; no mipmaps.
 // Kernel weights and offsets depend only on uniforms: compute per vertex.
@@ -66,6 +66,7 @@ void main()
                           + textureLod(Source, vTexCoord - offsetUV, 0.0).rgb);
     }
     acc *= vBlurMeta.x;
+    acc *= gk_frame(gk_warp(vTexCoord, params.OutputSize.xy), params.OutputSize.xy);   // v1.3: tube edge
 
     acc *= global.BRIGHT;
     float kn = clamp(global.KNEE, 0.5, 0.999);

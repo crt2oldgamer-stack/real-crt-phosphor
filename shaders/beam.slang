@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 10: scanline beams + glow, linear light at screen size (no mask yet)
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; vec4 SignalSize; } params;
 #include "params.inc"
@@ -17,15 +17,18 @@ layout(set = 0, binding = 2) uniform sampler2D Source;   // glow
 layout(set = 0, binding = 3) uniform sampler2D Signal;   // graded signal in linear light, alpha = linear ungraded brightness
 void main()
 {
+    // v1.3: where this screen pixel lands on the curved tube (identity when flat)
+    vec2 uv = gk_warp(vTexCoord, params.OutputSize.xy);
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) { FragColor = vec4(0.0, 0.0, 0.0, 1.0); return; }
     vec4 SS = params.SignalSize;
     float N = gk_box(SS.y);
     float R = gk_rows(SS.y);
     float Hc = SS.y / N;
     float lines = Hc / R;
     float nW = SS.x / N;
-    float ny = vTexCoord.y * lines;
-    float rowHere = floor(vTexCoord.y * Hc);
-    float nx = vTexCoord.x * nW - 0.5;
+    float ny = uv.y * lines;
+    float rowHere = floor(uv.y * Hc);
+    float nx = uv.x * nW - 0.5;
     float x0 = floor(nx);
     float fx = nx - x0;
     float base = floor(ny - 0.5);
@@ -42,6 +45,6 @@ void main()
         float w = global.BEAM_DARK + (global.BEAM_BRIGHT - global.BEAM_DARK) * sqrt(clamp(lu, 0.0, 1.0));
         acc += col * exp(-0.5 * (d / w) * (d / w)) / (w * 2.5066);
     }
-    acc += global.GLOW * texture(Source, vTexCoord).rgb;
+    acc += global.GLOW * texture(Source, uv).rgb;
     FragColor = vec4(acc, 1.0);
 }

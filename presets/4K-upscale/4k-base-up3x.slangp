@@ -1,0 +1,12 @@
+#reference "../../real-crt-phosphor-up3x.slangp"
+# 4k-base for 3D games at 3x internal resolution: same picture as 4k-base, much lighter.
+SOFT_ALL = "0.200000"
+LUMA_TAIL = "0.450000"
+PEAKING = "0.100000"
+CHROMA_TAIL = "1.150000"
+VERT_BLUR = "0.300000"
+MASK_PITCH = "4.500000"
+MELT_BRIGHT = "0.500000"
+CONVERGE = "0.400000"
+FINAL_BLUR = "0.500000"
+BRIGHT = "1.000000"

@@ -1,0 +1,113 @@
+# Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+shaders = 14
+
+shader0 = shaders/box.slang
+alias0 = "Box"
+filter_linear0 = false
+wrap_mode0 = clamp_to_edge
+scale_type0 = source
+scale0 = 0.333333
+
+shader1 = shaders/dither.slang
+alias1 = "Dithered"
+filter_linear1 = false
+wrap_mode1 = clamp_to_edge
+scale_type1 = source
+scale1 = 1.0
+
+shader2 = shaders/soft.slang
+alias2 = "Dither"
+filter_linear2 = false
+wrap_mode2 = clamp_to_edge
+scale_type2 = source
+scale2 = 1.0
+
+shader3 = shaders/kern.slang
+alias3 = "Kern"
+filter_linear3 = false
+wrap_mode3 = clamp_to_edge
+float_framebuffer3 = true
+scale_type3 = source
+scale3 = 1.0
+
+shader4 = shaders/signal.slang
+alias4 = "SignalH"
+filter_linear4 = false
+wrap_mode4 = clamp_to_edge
+scale_type4 = source
+scale4 = 1.0
+
+shader5 = shaders/vblur.slang
+alias5 = "SigRaw"
+filter_linear5 = false
+wrap_mode5 = clamp_to_edge
+float_framebuffer5 = true
+scale_type5 = source
+scale5 = 1.0
+
+shader6 = shaders/ag_mem.slang
+alias6 = "AGMem"
+filter_linear6 = false
+wrap_mode6 = clamp_to_edge
+float_framebuffer6 = true
+scale_type6 = source
+scale6 = 1.0
+
+shader7 = shaders/ag_out.slang
+alias7 = "Signal"
+filter_linear7 = false
+wrap_mode7 = clamp_to_edge
+float_framebuffer7 = true
+scale_type7 = source
+scale7 = 1.0
+
+shader8 = shaders/glow_h.slang
+filter_linear8 = false
+wrap_mode8 = clamp_to_edge
+float_framebuffer8 = true
+scale_type8 = source
+scale8 = 1.0
+
+shader9 = shaders/glow_v.slang
+alias9 = "Glow"
+filter_linear9 = true
+wrap_mode9 = clamp_to_edge
+float_framebuffer9 = true
+scale_type9 = source
+scale9 = 1.0
+
+shader10 = shaders/beam.slang
+filter_linear10 = true
+wrap_mode10 = clamp_to_edge
+float_framebuffer10 = true
+scale_type10 = viewport
+scale10 = 1.0
+
+shader11 = shaders/rgb.slang
+filter_linear11 = true
+wrap_mode11 = clamp_to_edge
+float_framebuffer11 = true
+scale_type11 = viewport
+scale11 = 1.0
+
+shader12 = shaders/post_h.slang
+filter_linear12 = true
+wrap_mode12 = clamp_to_edge
+float_framebuffer12 = true
+scale_type12 = viewport
+scale12 = 1.0
+
+shader13 = shaders/post_v.slang
+filter_linear13 = true
+wrap_mode13 = clamp_to_edge
+scale_type13 = viewport
+scale13 = 1.0
+
+# Explicit LOD 0 in the optimized post-filter passes.
+mipmap_input12 = false
+mipmap_input13 = false
+
+# Upscale chain: for 3D games running at 3x internal resolution. The first pass averages 3x3
+# and shrinks the picture back to its original size, so the rest runs as light as at 1x. Same picture.
+parameters = "PRESCALE"
+PRESCALE = "3.000000"

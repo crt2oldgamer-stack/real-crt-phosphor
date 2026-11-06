@@ -1,10 +1,13 @@
-// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // ---- shared helpers (included by every pass) ----
 // Input height relative to a 240-line TV picture: 1 = 240p/224p, 2 = 480 (hi-res/interlaced OR 2x upscale), 4 = 960 ...
 float gk_L(float srcH)   { return max(1.0, floor(srcH / 240.0 + 0.5)); }
 // Supersample factor: average 3D upscales down, but never below a 480-class picture, so real hi-res
 // screens (PS1 640x480 menus/text, SNES 512 modes) keep their detail.
 float gk_box(float srcH) { if (global.CONTENT_SCALE > 0.5) return floor(global.CONTENT_SCALE + 0.5); float L = gk_L(srcH); return (mod(L, 2.0) < 0.5) ? L * 0.5 : L; }
+// v1.4 upscale presets (-up2x/3x/4x) shrink the picture in the first pass already. PRESCALE tells the
+// passes that read the ORIGINAL size how much smaller the picture they work on really is.
+float gk_pre()           { return global.PRESCALE > 0.5 ? floor(global.PRESCALE + 0.5) : 1.0; }
 // Content rows drawn inside one scanline: 1 for 240-class, 2 for 480-class pictures
 float gk_rows(float srcH){ if (global.RASTER_LINES > 0.5) return max(1.0, (srcH / gk_box(srcH)) / global.RASTER_LINES); return gk_L(srcH) / gk_box(srcH); }
 // Blur widths are in content pixels, scaled a little for wider screens (Mega Drive 320 = 1.25), capped so hi-res text stays sharp
@@ -51,4 +54,31 @@ float gk_stripePrimitive(float x, float w, float e) {
     float t = clamp((h - r) / max(h * e, 1e-8), 0.0, 1.0);
     float area = (r <= inner) ? r : inner + h * e * (0.5 - t * t * t + 0.5 * t * t * t * t);
     return sign(x) * area;
+}
+
+// v1.3 screen curvature. Maps a point on the (flat) monitor to the place on the curved tube's picture.
+// Applied BEFORE the scanlines and RGB stripes are drawn, so nothing is resampled afterwards: no moire.
+// The middle of each edge stays at the edge; the corners bend away, like a barrel-shaped tube face.
+vec2 gk_warp(vec2 uv, vec2 outSize)
+{
+    float K = global.CURVATURE;
+    if (K < 0.0005) return uv;
+    float a = outSize.x / max(outSize.y, 1.0);
+    vec2 c = uv * 2.0 - 1.0;
+    float n = a * a + 1.0;
+    float f = 1.0 + K * ((c.x * a) * (c.x * a) + c.y * c.y) / n;
+    vec2 e = vec2(1.0 + K * a * a / n, 1.0 + K / n);
+    return (c * f / e) * 0.5 + 0.5;
+}
+// rounded-corner picture edge (1 = inside) and edge darkening, both only with curvature on
+float gk_frame(vec2 w, vec2 outSize)
+{
+    if (global.CURVATURE < 0.0005) return 1.0;
+    float rad = global.CORNER * min(outSize.x, outSize.y);          // corner radius in px
+    vec2 q = abs((w - 0.5) * outSize) - (0.5 * outSize - rad);
+    float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;  // distance outside the rounded edge, in px
+    float inside = clamp(0.5 - d, 0.0, 1.0);
+    vec2 v = clamp(w, 0.0, 1.0);
+    float vig = pow(clamp(16.0 * v.x * v.y * (1.0 - v.x) * (1.0 - v.y), 0.0, 1.0), 0.35 * global.VIGNETTE);
+    return inside * vig;
 }

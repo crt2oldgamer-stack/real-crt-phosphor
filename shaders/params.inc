@@ -1,10 +1,11 @@
-// Real CRT Phosphor v1.2 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
-#pragma parameter GK_TITLE "=== Real CRT Phosphor v1.2 ===" 0.0 0.0 0.0 1.0
+// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+#pragma parameter GK_TITLE "=== Real CRT Phosphor v1.4 ===" 0.0 0.0 0.0 1.0
 #pragma parameter GK_INFO "    AI-assisted by Claude / ChatGPT - see LICENSE.txt" 0.0 0.0 0.0 1.0
 #pragma parameter GK_SP1 " " 0.0 0.0 0.0 1.0
 #pragma parameter GK_IN "[ INPUT ]  (0 = auto)" 0.0 0.0 0.0 1.0
 #pragma parameter RASTER_LINES "    Scanlines in picture (PSP 272)" 0.0 0.0 600.0 1.0
 #pragma parameter CONTENT_SCALE "    Internal-res average factor" 0.0 0.0 8.0 1.0
+#pragma parameter PRESCALE "    Pre-shrunk by (set by -upNx presets)" 0.0 0.0 8.0 1.0
 #pragma parameter GK_SP2 " " 0.0 0.0 0.0 1.0
 #pragma parameter GK_SIG "[ SIGNAL ]" 0.0 0.0 0.0 1.0
 #pragma parameter DITHER "    Dither blending (Mega Drive)" 0.0 0.0 1.0 0.05
@@ -72,3 +73,9 @@
 #pragma parameter AFTERGLOW "    Afterglow strength (0 = off)" 0.0 0.0 1.0 0.05
 #pragma parameter AG_TIME "    Afterglow time until it looks 10% (ms, 60 fps)" 20.0 5.0 600.0 5.0
 #pragma parameter AG_RED "    Red phosphor lasts longer (x)" 1.2 1.0 4.0 0.1
+#pragma parameter GK_SP10 " " 0.0 0.0 0.0 1.0
+#pragma parameter GK_CURVE "[ SCREEN CURVATURE ]  (0 = flat)" 0.0 0.0 0.0 1.0
+#pragma parameter CURVATURE "    Tube curvature (0 = flat)" 0.0 0.0 0.5 0.01
+#pragma parameter CORNER "    Rounded corners (with curvature)" 0.03 0.0 0.15 0.005
+#pragma parameter VIGNETTE "    Edge darkening (with curvature)" 0.25 0.0 1.0 0.05
+#pragma parameter MASK_CURVE "    Mask follows curvature (moire at 1080p)" 0.0 0.0 1.0 1.0
