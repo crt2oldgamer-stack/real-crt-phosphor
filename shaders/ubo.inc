@@ -1,4 +1,4 @@
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 layout(std140, set = 0, binding = 0) uniform UBO
 {
     mat4 MVP;

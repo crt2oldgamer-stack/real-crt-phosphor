@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 1: composite-style dither blending (static). 1-pixel alternating columns (A B A B) - the Mega Drive
 // "fake transparency" trick - are melted together the way a composite TV did, without any moving artifacts.
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;

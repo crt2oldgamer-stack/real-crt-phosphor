@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 8: glow, horizontal blur (linear light)
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;
 #include "params.inc"
@@ -18,7 +18,7 @@ void main()
 {
     float N  = gk_box(params.SourceSize.y);
     float nW = params.SourceSize.x / N;
-    float k  = gk_k(nW);
+    float k  = gk_kg(nW);                        // v1.4.1: same glow size on screen for 256 and 512 modes
     vec2 stp = vec2(N * params.SourceSize.z, 0.0);
     float s = max(global.GLOW_R * 0.875 * k, 0.1);
     int r = min(int(ceil(3.0 * s)), 24);

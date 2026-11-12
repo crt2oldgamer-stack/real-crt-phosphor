@@ -1,0 +1,12 @@
+#reference "../../real-crt-phosphor-up3x.slangp"
+# For 3D games at 3x internal resolution (PS1, PSP, N64, PS2...): ally-base, much lighter, same picture.
+# Use only when the emulator really renders at 3x. For another look, tune it in the web preview and save as "up3x".
+LUMA_BLUR = "0.400000"
+LUMA_TAIL = "0.600000"
+CHROMA_BLUR = "0.800000"
+S_LOW = "0.300000"
+S_HIGH = "0.650000"
+VERT_BLUR = "0.250000"
+MASK_PITCH = "4.500000"
+FINAL_BLUR = "0.300000"
+BRIGHT = "1.000000"

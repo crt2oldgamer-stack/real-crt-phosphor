@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 7: phosphor afterglow output. Puts the remembered glow, scaled by the strength, under the current picture.
 // max(now, strength x memory): still pictures stay exactly as they were.
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;

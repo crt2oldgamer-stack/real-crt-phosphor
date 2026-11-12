@@ -1,4 +1,4 @@
-Real CRT Phosphor v1.4 — CRT shader for RetroArch (slang)
+Real CRT Phosphor v1.4.1 — CRT shader for RetroArch (slang)
 by gunkun (concept, direction, testing, tuning)
 AI-generated work: most of the code was written by AI (Claude, ChatGPT). See LICENSE.txt
 
@@ -11,16 +11,40 @@ load real-crt-phosphor.slangp, or a tuned preset from presets/4K or presets/Ally
 Per-game tweaks: adjust parameters, then Save Game Preset.
 Tip: view screenshots at 100% — downscaling destroys the stripe pattern.
 
+v1.4.1: fix - the picture no longer turns sharper or shifts right when a game switches to a wider mode.
+  Some games change the screen width while you play. Seiken Densetsu 3 (SNES), for example, switches
+  from 256 to 512 pixels wide whenever a dialog box opens. Before, the glow and the horizontal softness
+  were measured in game pixels and capped, so in the 512 mode they shrank to about 60 % on screen:
+  the picture suddenly looked sharper and the glow seemed to disappear. The smear to the right was also
+  built on the game-pixel grid, so it came out a little longer on the finer 512 grid and the picture
+  seemed to jump right.
+  Now:
+  - The glow keeps the same size on screen whatever the input width.
+  - In wide modes (over 320) the signal filter (softness, colour bleed, smear to the right) is the 256
+    filter stretched to the wider grid, so it has the same size and position on screen as in the 256 picture.
+  On a real CRT all of this comes from the glass and the analog signal, so it doesn't change with the
+  game's resolution either.
+  - Games up to 320 wide (most SNES, Mega Drive, arcade, PS1 games): pixel-identical to v1.4.
+  - Wider screens (PS1 368/384/512/640, SNES 512): softer, close to the 256 picture.
+  - Text in 512-wide screens gets softer, like the rest of the picture, but stays readable.
+  - Very fine details (1-2 px) can't match the 256 picture exactly, because the 256 and 512 pixel
+    grids don't line up; the difference stays within a few percent (tested at 4K and on the ROG Ally).
+  Just overwrite the folder; your presets and game presets keep working.
+
 v1.4: upscale presets for 3D games (lighter, same picture).
   Use them when the emulator renders at 2x, 3x or 4x internal resolution (PS1, PSP, N64, PS2...).
-  - real-crt-phosphor-up2x / up3x / up4x.slangp: upscale chains
-  - presets/4K-upscale, presets/Ally-upscale: base, ps1, psp, ps2 (+slot) at 2x / 3x / 4x
-    e.g. PS1 at 3x on a ROG Ally -> presets/Ally-upscale/ally-ps1-up3x.slangp
+  - presets/4K/4k-up2x, 4k-up3x, 4k-up4x: for 4K monitors
+  - presets/Ally/ally-up2x, ally-up3x, ally-up4x: for the ROG Ally and 1080p
+    e.g. PS1 at 2x on a ROG Ally -> presets/Ally/ally-up2x.slangp
+  - For a system-specific look (ps1, psp...), tune it in the web preview and save as "upscale".
+  - (The real-crt-phosphor-up2x / up3x / up4x.slangp files are the chains these presets point to.)
   The first pass averages N x N and shrinks the picture back to its original size, so the rest of
   the shader and its buffers are as light as at 1x. Fewer frame drops at 3x/4x, and much shorter
   hitches (audio crackle) when a game switches resolution, e.g. entering a battle.
   The result is pixel-identical to the 1x picture. 2D systems: keep using the normal presets.
-  Suggested for 3D games: 2x internal resolution + up2x. The internal resolution and the preset
+  Suggested for 3D games: 2x internal resolution + up2x. On handhelds like the ROG Ally, the emulator
+  itself uses most of the GPU from 3x on, so frames may drop there.
+  Save it as a Game Preset for the games you upscale, so it never lands on a 1x game. The internal resolution and the preset
   must match (3x picture -> up3x). In the web preview, Save .slangp picks the upscale chain for 3x/4x.
 
 v1.3: new optional screen curvature, off by default.

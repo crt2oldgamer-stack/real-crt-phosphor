@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Real CRT Phosphor Opt Test 2: unchanged discrete Gaussian, weights computed per vertex.
 // Requires filter_linear=true for this pass; no mipmaps.
 // Kernel weights and offsets depend only on uniforms: compute per vertex.

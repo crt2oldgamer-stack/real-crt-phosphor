@@ -1,5 +1,5 @@
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
-#pragma parameter GK_TITLE "=== Real CRT Phosphor v1.4 ===" 0.0 0.0 0.0 1.0
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+#pragma parameter GK_TITLE "=== Real CRT Phosphor v1.4.1 ===" 0.0 0.0 0.0 1.0
 #pragma parameter GK_INFO "    AI-assisted by Claude / ChatGPT - see LICENSE.txt" 0.0 0.0 0.0 1.0
 #pragma parameter GK_SP1 " " 0.0 0.0 0.0 1.0
 #pragma parameter GK_IN "[ INPUT ]  (0 = auto)" 0.0 0.0 0.0 1.0

@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 11: the picture is emitted ONLY by red, green and blue phosphor stripes (no base layer underneath).
 // Each stripe shows its own colour of the light falling on it; bright stripes bloom wider and overlap
 // (bright areas melt toward white), dark stripes stay thin (colours split at edges, like a real tube).
