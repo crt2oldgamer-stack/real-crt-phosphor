@@ -9,6 +9,10 @@ total light is preserved so widening never dims or muddies the image.
 Install: copy the real-crt-phosphor folder into RetroArch/shaders/shaders_slang/,
 load real-crt-phosphor.slangp, or a tuned preset from presets/4K or presets/Ally.
 Per-game tweaks: adjust parameters, then Save Game Preset.
+Preset structure: system presets (4k-sfc, ally-ps1 ...) only inherit from 4k-base / ally-base.
+To change all 4K presets edit 4k-base; to change one system edit only that file.
+Note: renaming a preset file in Explorer breaks the presets that #reference it. To make a new system
+preset, Load the base file first, adjust, then save it from RetroArch.
 Tip: view screenshots at 100% — downscaling destroys the stripe pattern.
 
 Bonus: GBA color fix (GBA Comfort Color) - presets/GBA/

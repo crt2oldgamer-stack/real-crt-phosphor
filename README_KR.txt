@@ -16,6 +16,11 @@ AI 저작물 표시: 코드 대부분을 AI(Claude, ChatGPT)가 작성했습니�
      - 바로 써 보기: real-crt-phosphor.slangp
      - 추천 설정:   presets/4K/ (4K 모니터), presets/Ally/ (1080p 휴대기기)
   4) 마음에 들면 Save → Save Core Preset (기종마다)
+  - 게임마다 미세 조정: 그 게임에서 Shader Parameters를 바꾼 뒤 Save → Save Game Preset
+  - 프리셋 구조: 기종 프리셋(4k-sfc, ally-ps1 ...)은 4k-base / ally-base 만 물려받습니다.
+    4K 전체를 바꾸려면 4k-base만, 한 기종만 바꾸려면 그 기종 파일만 고치면 됩니다.
+  - 주의: 프리셋 파일 이름을 탐색기에서 바꾸면 그 파일을 가리키던 연결(#reference)이 끊깁니다.
+    새 기종 프리셋은 base 파일을 먼저 Load 한 뒤 조정해서 RetroArch에서 저장하세요.
 
 ■ 보너스: GBA 색 보정 (GBA Comfort Color) — presets/GBA/
   GBA 게임은 강한 형광색을 많이 써서, 요즘 화면에서 에뮬레이터로 하면 우주가 새파랗고 초록이 형광색으로 보여 눈이 피로합니다.
@@ -122,7 +127,9 @@ AI 저작물 표시: 코드 대부분을 AI(Claude, ChatGPT)가 작성했습니�
     *-sfc / *-ps1 / *-ps2 / *-psp            Aperture Grille, 피치 4.5
     *-sfc-slot / ... / *-psp-slot            Slot Mask, 피치 3
     *-ps2-2d                                 PS2 2D 게임용, 피치 1.5
-  자세한 구조와 게임별 조정법: presets/프리셋_사용법.txt
+    *-up2x / up3x / up4x                     3D 게임을 내부 해상도 2·3·4배로 할 때
+  presets/GBA/  GBA 색 보정 보너스 (presets/GBA/README_KR.txt)
+  구조와 게임별 조정법: 위 "■ 설치" 아래 설명 참고
 
 ■ 자주 만지는 값
   RGB triad pitch px       RGB 줄 묶음 간격. 0 = 자동. Grille은 4.5, Slot은 3 추천
