@@ -4,6 +4,8 @@ I grew up playing games on a CRT, and I wanted to recreate a particular part of 
 
 This is my attempt to capture that look, rather than an exact simulation of a particular CRT model. I’m enjoying the result and wanted to share it with other players.
 
+> **Latest: v1.4.3** — high-res pictures are sharp again (PS2, ShaderGlass), PSP 4x fix, and a new **GBA color bonus** (see [Bonus: GBA Color Fix](#bonus-gba-color-fix)). [Release notes](https://github.com/crt2oldgamer-stack/real-crt-phosphor/releases)
+
 ### Reference & Target Look
 
 This is the kind of picture I was aiming for:
@@ -115,10 +117,28 @@ I’ve tested the shader on a **32-inch 4K monitor** and an **ASUS ROG Ally at 1
 * **System presets without `-slot`:** Aperture grille.
 * **Presets with `-slot`:** Slot mask.
 * **`-ps2-2d`:** A separate starting point for PS2 2D games.
+* `presets/GBA/`: Bonus GBA color presets (see below).
 
 **Tuning Tips:** `Horizontal softness`, `Vertical softness`, and `Phosphor pitch` are useful adjustments for individual games. I also like adding a little convergence error for a slightly imperfect CRT look. Once you find settings you enjoy, save a **Game Preset**.
 
 > **Note:** Please view screenshots at their original size. Resizing can hide the RGB structure or introduce moiré. The effect also needs enough output pixels to resolve the pattern; a small preview may not show it accurately.
+
+---
+
+## Bonus: GBA Color Fix
+
+Many GBA games use very strong, neon-like colors: the screens of the time were dark, so the art was drawn extra bright. On a modern screen, space looks bright blue and grass looks neon green, which is hard on the eyes. The GBA presets tone these strong colors down so you can play comfortably. It is a comfort color fix, not an exact copy of the real GBA screen.
+
+* Three strengths: **light**, **medium** and **strong** (for games full of neon colors, like Super Robot Wars A). Not sure? Start with **medium**.
+* `presets/GBA/gba-light`, `gba-medium`, `gba-strong`: color only, 1 pass, light enough for handhelds.
+* `presets/GBA/gba-crt-light`, `gba-crt-medium`, `gba-crt-strong`: color + Real CRT Phosphor (15 passes), with little smear like an LCD (MASK_PITCH 5.5).
+* Nothing extra to install. Turn off mGBA's own color correction.
+
+<img src="docs/images/v143_04_gba_bonus_advance_wars.png" alt="Advance Wars: original / light / medium / strong" />
+*Advance Wars (GBA, color only): original / light / medium / strong.*
+
+<img src="docs/images/v143_05_gba_bonus_srwa_jp.png" alt="Super Robot Taisen A: original / light / medium / strong" />
+*Super Robot Taisen A (GBA, Japanese, color only): original / light / medium / strong. The map grid stays visible.*
 
 ---
 

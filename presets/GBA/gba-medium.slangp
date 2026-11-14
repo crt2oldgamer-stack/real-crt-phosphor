@@ -1,0 +1,27 @@
+# Real CRT Phosphor - GBA bonus (GBA Comfort Color), MEDIUM: neon colors almost gone, picture a little calmer and darker. Fine for most games, even Super Robot Wars A.
+# Color only, 1 pass.
+
+shaders = "1"
+
+shader0 = "../../shaders/gba-comfort-color.slang"
+filter_linear0 = "false"
+scale_type0 = "source"
+scale0 = "1.000000"
+
+GBA_VIOLET = "7.500000"
+GBA_YELLOW = "0.125000"
+GBA_PRIM = "0.250000"
+GBA_DEEP = "0.080000"
+GBA_SATURATION = "0.905000"
+GBA_HUE = "2.500000"
+GBA_LV_BLACK = "0.060000"
+GBA_LV_WHITE = "0.935000"
+GBA_S_LOW = "0.250000"
+GBA_S_HIGH = "0.075000"
+GBA_GAMMA = "1.045000"
+GBA_WP_R = "0.840000"
+GBA_WP_G = "0.845000"
+GBA_WP_B = "0.840000"
+GBA_KNEE = "0.900000"
+GBA_BRIGHTNESS = "0.925000"
+GBA_SECOND = "0.300000"

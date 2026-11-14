@@ -1,4 +1,4 @@
-Real CRT Phosphor v1.4.1  — RetroArch용 CRT 셰이더 (slang)
+Real CRT Phosphor v1.4.3  — RetroArch용 CRT 셰이더 (slang)
 제작: 건군 (기획·방향·실기 테스트·튜닝)
 AI 저작물 표시: 코드 대부분을 AI(Claude, ChatGPT)가 작성했습니다. 자세한 내용은 LICENSE_KR.txt
 
@@ -16,6 +16,28 @@ AI 저작물 표시: 코드 대부분을 AI(Claude, ChatGPT)가 작성했습니�
      - 바로 써 보기: real-crt-phosphor.slangp
      - 추천 설정:   presets/4K/ (4K 모니터), presets/Ally/ (1080p 휴대기기)
   4) 마음에 들면 Save → Save Core Preset (기종마다)
+
+■ 보너스: GBA 색 보정 (GBA Comfort Color) — presets/GBA/
+  GBA 게임은 강한 형광색을 많이 써서, 요즘 화면에서 에뮬레이터로 하면 우주가 새파랗고 초록이 형광색으로 보여 눈이 피로합니다.
+  GBA 보너스 프리셋은 그런 진한 색을 눌러서 편하게 볼 수 있게 합니다.
+  - 세기 3가지: 약(light) / 중(medium, 잘 모르겠으면 이것) / 강(strong, 슈퍼로봇대전 A처럼 형광색이 가득한 게임)
+  - 색만 (1패스, 휴대기기용): presets/GBA/gba-light, gba-medium, gba-strong.slangp
+  - 색 + CRT (15패스): presets/GBA/gba-crt-light, gba-crt-medium, gba-crt-strong.slangp
+  - 따로 설치할 것 없음 (real-crt-phosphor 폴더 안에 들어 있음). 자세한 내용은 presets/GBA/README_KR.txt
+
+■ v1.4.3 수정
+  1) 고해상도 화면이 다시 선명해졌습니다 (PS2, PS1 640x480, ShaderGlass 캡처)
+     v1.4.1은 가로 320보다 넓은 화면을 모두 256 화면만큼 부드럽게 만들었습니다. 슈퍼패미컴 512 모드(256 그림을
+     가로로 두 배 늘린 것)에는 맞았지만, PS2 640x448 같은 진짜 고해상도 화면은 글자를 읽기 어려울 만큼 흐려졌습니다.
+     이제 세로 288줄 이하(240p급)이면서 가로 321~599인 화면(슈퍼패미컴 512, PS1 368~512)만 v1.4.1 방식을 쓰고,
+     그보다 큰 화면(480줄급, 가로 600 이상, ShaderGlass로 작은 창을 잡은 400x300 같은 화면)은 다시 v1.4 방식을 씁니다.
+     - 가로 320 이하: v1.4·v1.4.1과 동일 / 슈퍼패미컴 512(성검전설3 대화창 등): v1.4.1과 동일
+     - PS2, PS1 640x480·368x480 메뉴, ShaderGlass 캡처: v1.4와 픽셀 단위로 동일
+     제보해 주신 레딧 사용자(ROG Ally에서 PCSX2 + ShaderGlass)께 감사드립니다.
+  2) PSP 4배 내부 해상도(1088줄)에서 주사선 수가 틀리던 문제 수정
+     1088 / 240 = 4.5라 5배로 잘못 읽어 주사선이 272줄이 아니라 218줄로 그려졌습니다.
+     이제 272의 배수(1088·1360·1632)는 PSP 줄 수로 읽어 272줄이 맞게 나옵니다. 1배·2배·3배 PSP는 그대로입니다.
+  3) 보너스: GBA 색 보정 프리셋 (위 항목)
 
 ■ v1.4.1 수정: 게임 도중 화면 폭이 바뀌어도 화면이 갑자기 선명해지거나 오른쪽으로 밀리지 않습니다
   일부 게임은 플레이 중에 화면 가로 해상도를 바꿉니다. 예를 들어 성검전설3(슈퍼패미컴)는

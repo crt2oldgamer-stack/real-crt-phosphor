@@ -1,4 +1,4 @@
-Real CRT Phosphor v1.4.1 — CRT shader for RetroArch (slang)
+Real CRT Phosphor v1.4.3 — CRT shader for RetroArch (slang)
 by gunkun (concept, direction, testing, tuning)
 AI-generated work: most of the code was written by AI (Claude, ChatGPT). See LICENSE.txt
 
@@ -10,6 +10,28 @@ Install: copy the real-crt-phosphor folder into RetroArch/shaders/shaders_slang/
 load real-crt-phosphor.slangp, or a tuned preset from presets/4K or presets/Ally.
 Per-game tweaks: adjust parameters, then Save Game Preset.
 Tip: view screenshots at 100% — downscaling destroys the stripe pattern.
+
+Bonus: GBA color fix (GBA Comfort Color) - presets/GBA/
+  Many GBA games use very strong, neon-like colors. On a modern screen space looks bright blue and
+  greens look neon, which is hard on the eyes. The GBA bonus presets tone them down for comfortable play.
+  - Three strengths: LIGHT / MEDIUM (not sure? use this) / STRONG (games full of neon colors, e.g. Super Robot Wars A)
+  - Color only (1 pass, for handhelds): presets/GBA/gba-light, gba-medium, gba-strong.slangp
+  - Color + CRT (15 passes): presets/GBA/gba-crt-light, gba-crt-medium, gba-crt-strong.slangp
+  - Nothing extra to install: it is inside the real-crt-phosphor folder. See presets/GBA/README_EN.txt
+
+v1.4.3: fixes + GBA bonus
+  1) High-resolution pictures are sharp again (PS2, PS1 640x480, ShaderGlass captures).
+     v1.4.1 made every picture wider than 320 px as soft as a 256 picture. That was right for SNES 512 modes
+     (a 256 picture drawn twice as wide), but real hi-res pictures like PS2 640x448 became so soft that text
+     was hard to read. Now only pictures up to 288 lines (240p class) and 321-599 px wide (SNES 512, PS1 368-512)
+     use the v1.4.1 behaviour; bigger pictures (480-line, 600+ px wide, small ShaderGlass window captures like
+     400x300) use the v1.4 filter again.
+     - Up to 320 wide: same as v1.4 and v1.4.1.  SNES 512 (e.g. Seiken Densetsu 3 dialog boxes): same as v1.4.1.
+     - PS2, PS1 640x480 / 368x480 menus, ShaderGlass captures: pixel-identical to v1.4.
+     Thanks to the Reddit user who reported it (PCSX2 + ShaderGlass on a ROG Ally).
+  2) PSP at 4x internal resolution (1088 lines) now gets the right number of scanlines (272, was 218).
+     Heights that are an exact multiple of 272 (1088, 1360, 1632) are read as PSP lines. PSP 1x-3x: unchanged.
+  3) Bonus: GBA color presets (see above).
 
 v1.4.1: fix - the picture no longer turns sharper or shifts right when a game switches to a wider mode.
   Some games change the screen width while you play. Seiken Densetsu 3 (SNES), for example, switches

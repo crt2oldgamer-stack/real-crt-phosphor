@@ -1,7 +1,9 @@
-// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.3 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // ---- shared helpers (included by every pass) ----
 // Input height relative to a 240-line TV picture: 1 = 240p/224p, 2 = 480 (hi-res/interlaced OR 2x upscale), 4 = 960 ...
-float gk_L(float srcH)   { return max(1.0, floor(srcH / 240.0 + 0.5)); }
+// v1.4.3: PSP pictures are 272 lines, so a 4x PSP upscale is 1088 lines (1088 / 240 = 4.53 -> 5, wrong). A height that is
+// an exact multiple of 272 is now read as that many PSP lines (1088 -> 4, 1360 -> 5, 1632 -> 6); 272 / 544 / 816 unchanged.
+float gk_L(float srcH)   { return (srcH > 271.5 && abs(srcH / 272.0 - floor(srcH / 272.0 + 0.5)) < 0.002) ? floor(srcH / 272.0 + 0.5) : max(1.0, floor(srcH / 240.0 + 0.5)); }
 // Supersample factor: average 3D upscales down, but never below a 480-class picture, so real hi-res
 // screens (PS1 640x480 menus/text, SNES 512 modes) keep their detail.
 float gk_box(float srcH) { if (global.CONTENT_SCALE > 0.5) return floor(global.CONTENT_SCALE + 0.5); float L = gk_L(srcH); return (mod(L, 2.0) < 0.5) ? L * 0.5 : L; }
@@ -12,14 +14,18 @@ float gk_pre()           { return global.PRESCALE > 0.5 ? floor(global.PRESCALE 
 float gk_rows(float srcH){ if (global.RASTER_LINES > 0.5) return max(1.0, (srcH / gk_box(srcH)) / global.RASTER_LINES); return gk_L(srcH) / gk_box(srcH); }
 // Blur widths are in content pixels, scaled a little for wider screens (Mega Drive 320 = 1.25), capped so hi-res text stays sharp
 float gk_k(float nW)     { return clamp(nW / 256.0, 0.5, 1.25); }
-// v1.4.1: glow is light spreading in the glass and phosphor, so its size on screen does not depend on the input width
-float gk_kg(float nW)    { return max(nW / 256.0, 0.5); }
-// v1.4.1: in wide modes (over 320, e.g. SNES 512 when Seiken Densetsu 3 opens a dialog box) the signal
-// filter is the 256 filter stretched to the wider grid, its taps linearly interpolated. The softness, the
-// colour bleed and the smear to the right then stay the same size on screen as in the 256 picture, and the
-// picture no longer jumps sharper or shifts right when a game switches modes. Up to 320 nothing changes.
-bool  gk_wide(float nW)  { return nW > 320.5; }
-float gk_ks(float nW)    { return gk_wide(nW) ? nW / 256.0 : gk_k(nW); }
+// v1.4.1/v1.4.2: "wide mode" = a 240-line picture 321-599 px wide, i.e. SNES 512 (Seiken Densetsu 3 opens a
+// dialog box and switches 256 -> 512) or PS1 368-512. There the signal filter is the 256 filter stretched to the
+// wider grid (its taps linearly interpolated) and the glow keeps its size on screen, so the picture does not jump
+// sharper or shift right when a game switches modes.
+// v1.4.2: real hi-res pictures (480-class PS1/PS2 640x448/480, ShaderGlass desktop captures, anything 600+ wide)
+// are NOT wide mode again: they use the v1.4 filter, capped so hi-res text stays sharp. Up to 320: unchanged.
+// v1.4.3: "240-line class" now means at most 288 lines (NTSC 224/239/240, PAL 256/288). Before it was "under 360", so a
+// small ShaderGlass window capture (e.g. 800x600 at input scale 2 = 400x300) was softened like an SNES 512 picture.
+bool  gk_wide(float nW, float srcH) { return nW > 320.5 && nW < 600.0 && srcH < 288.5; }
+float gk_ks(float nW, float srcH)   { return gk_wide(nW, srcH) ? nW / 256.0 : gk_k(nW); }
+// glow is light spreading in the glass and phosphor: in wide mode it keeps its size on screen
+float gk_kg(float nW, float srcH)   { return gk_wide(nW, srcH) ? max(nW / 256.0, 0.5) : gk_k(nW); }
 vec3 gk_toYIQ(vec3 c) {
     return vec3(dot(c, vec3(0.299, 0.587, 0.114)),
                 dot(c, vec3(0.596, -0.274, -0.322)),

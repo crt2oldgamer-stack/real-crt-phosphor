@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.3 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 2: small blur in every direction (up/down/left/right at once), linear light, on the native pixel grid.
 // Balances the rightward analog smear so softening does not lean to one side.
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;

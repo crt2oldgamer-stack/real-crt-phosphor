@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.3 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 4: analog signal path - luma/chroma low-pass with rightward smear, TV peaking, hue/saturation, levels + S-curve
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; vec4 DitherSize; vec4 KernSize; } params;
 #include "params.inc"
@@ -20,7 +20,7 @@ void main()
     vec4 DS = params.DitherSize;
     float N  = gk_box(DS.y);
     float nW = DS.x / N;
-    float k  = gk_ks(nW);                            // v1.4.1: reach of the filter (wide modes: stretched 256 filter)
+    float k  = gk_ks(nW, DS.y);                      // v1.4.1/v1.4.2: reach of the filter (wide mode: stretched 256 filter)
     vec2 stp = vec2(N * DS.z, 0.0);                  // one native pixel
 
     float sY  = global.LUMA_BLUR * k;

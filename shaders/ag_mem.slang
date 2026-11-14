@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.3 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 6: phosphor afterglow memory. Keeps, per game pixel and channel, the brighter of "light now" and
 // "light from the frames before, decayed". It reads its own previous output (AGMemFeedback).
 // A still picture is unchanged; only places something has moved away from keep a fading glow.

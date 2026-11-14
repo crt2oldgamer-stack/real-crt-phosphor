@@ -1,0 +1,27 @@
+# Real CRT Phosphor - GBA bonus (GBA Comfort Color), LIGHT: for most games. Only very strong, bright colors are toned down; the rest stays as the game drew it.
+# Color only, 1 pass.
+
+shaders = "1"
+
+shader0 = "../../shaders/gba-comfort-color.slang"
+filter_linear0 = "false"
+scale_type0 = "source"
+scale0 = "1.000000"
+
+GBA_VIOLET = "0.000000"
+GBA_YELLOW = "0.000000"
+GBA_PRIM = "0.000000"
+GBA_DEEP = "0.000000"
+GBA_SATURATION = "1.000000"
+GBA_HUE = "0.000000"
+GBA_LV_BLACK = "0.000000"
+GBA_LV_WHITE = "1.000000"
+GBA_S_LOW = "0.000000"
+GBA_S_HIGH = "0.000000"
+GBA_GAMMA = "1.000000"
+GBA_WP_R = "1.000000"
+GBA_WP_G = "1.000000"
+GBA_WP_B = "1.000000"
+GBA_KNEE = "1.000000"
+GBA_BRIGHTNESS = "1.000000"
+GBA_SECOND = "0.150000"

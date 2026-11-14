@@ -1,5 +1,5 @@
 #version 450
-// Real CRT Phosphor v1.4.1 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
+// Real CRT Phosphor v1.4.3 - AI-assisted (Claude / ChatGPT), by gunkun. Non-commercial use free. See LICENSE.txt
 // Pass 3: lookup row of the horizontal filter weights (only the first row / first 128 texels are used).
 // The weights are the same for every pixel, so they are computed once here instead of per pixel in the signal pass.
 layout(push_constant) uniform Push { vec4 SourceSize; vec4 OriginalSize; vec4 OutputSize; uint FrameCount; } params;
@@ -22,7 +22,7 @@ void main()
     float N  = gk_box(params.SourceSize.y);
     float nW = params.SourceSize.x / N;
     float t  = tx.x - 32.0;                                  // tap offset -32 .. +95
-    if (gk_wide(nW)) {
+    if (gk_wide(nW, params.SourceSize.y)) {
         // v1.4.1: wide modes use the 256 filter, stretched by nW/256 with linear interpolation between its taps
         float u  = t * 256.0 / nW;
         float u0 = floor(u), f = u - u0;
